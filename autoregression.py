@@ -1,10 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from pandas.tools.plotting import scatter_matrix
 import scipy.stats as scs
 from scipy.stats.distributions import norm
 from scipy.stats import gaussian_kde
-from sklearn.neighbors import KernelDensity
 from statsmodels.nonparametric.kde import KDEUnivariate
 from statsmodels.nonparametric.kernel_density import KDEMultivariate
 from sympy.solvers import solve
@@ -12,7 +12,7 @@ from sympy import Symbol
 import scipy.optimize as optim
 from itertools import product
 from sklearn.model_selection import (KFold, train_test_split, cross_val_score)
-from pandas.tools.plotting import scatter_matrix
+from sklearn.neighbors import KernelDensity
 from sklearn.linear_model import (LinearRegression, Ridge)
 from sklearn.pipeline import Pipeline
 from basis_expansions.basis_expansions import (
@@ -29,6 +29,14 @@ from regression_tools.dftransformers import (
     ColumnSelector, Identity,
     FeatureUnion, MapFeature,
     StandardScaler, Intercept)
+from sklearn import model_selection
+from sklearn.linear_model import LogisticRegression, RidgeCV, LassoCV
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.naive_bayes import GaussianNB
+from sklearn.svm import SVC
+
 # import warnings
 # warnings.filterwarnings('ignore')
 from time import sleep
@@ -274,7 +282,7 @@ def make_k_folds_ridge(df, y_var_name, pipeliner=auto_spline_pipeliner, knots = 
 def fit_predict_model():
     pass
 
-def super_regression(df, df_test_X, y_var_name, y_test = [], num_alphas=100, alpha_min=.00001, alpha_max=1000000):
+def auto_regression(df, df_test_X, y_var_name, y_test = [], num_alphas=100, alpha_min=.00001, alpha_max=1000000):
     # KEEP ME: FIX BOOLEAN CASE BEFORE DELETING:
     # (continuous_features, category_features) = sort_features(df)
     # df_graphable = df
@@ -333,59 +341,117 @@ def super_regression(df, df_test_X, y_var_name, y_test = [], num_alphas=100, alp
     # galgraphs.plot_many_predicteds_vs_actuals(df, df.columns, y_var_name, y_hat, n_bins=50)
     return (y_hat, rr_optimized, trained_pipeline, y_cv_mean, y_cv_std)
 
-def compare_predictions(df, y_var_name):
-    X = df.drop(y_var_name, axis = 1).values   
-    Y = df[y_var_name]
+def compare_predictions(df, y_var_name, knots=5, univariates=True):
+    df = cleandata.clean_df(df, y_var_name)
+    print('df columns: ' + str(list(df.columns)))
+    df_X = df.drop(y_var_name, axis = 1)
+    pipeline = auto_spline_pipeliner(df_X, knots=5)
+    pipeline.fit(df_X)
+    df_X = pipeline.transform(df_X)
+    X = df_X.values   
+    y = df[y_var_name]
+    df = df_X
+    df[y_var_name] = y
+    print('df columns after transform: ' + str(list(df.columns)))
     # prepare models
     models = []
-    df = cleandata.clean_df_respect_to_y(df, y_var_name)
     # decide if y is continuous or categorical
-    if ( 2 < len(np.unique(Y)) ):
-        galgraphs.plot_many_univariates(df, y_var_name)
+    if ( 2 < len(np.unique(y)) ):
+        if univariates==True:
+            galgraphs.plot_many_univariates(df, y_var_name)
+            plt.show()
         #if continuous, make some splines HERE
-        
-        X = dataframe.drop(y_var_name, axis = 1).values   
-        Y = dataframe[y_var_name]
-        print ( 'Y variable: "' + y_var_name + '" is continuous' )
-        models.append(('LR', LinearRegression())) 
-        alpha_range = np.linspace(.0001, 10000,100)
+        print ( 'y variable: "' + y_var_name + '" is continuous' )
+        models.append(('LR', LinearRegression())) # LinearRegression as no ._coeff???!
+        alpha_range = np.linspace(.0001, 10000,10)
         models.append(('RR', RidgeCV(alphas=alpha_range)))
         models.append(('LR', LassoCV()))
-        # models.append(('KNN', KNeighborsClassifier()))
-        # models.append(('CART', DecisionTreeClassifier()))
+        models.append(('CART', DecisionTreeRegressor()))
         # models.append(('NB', GaussianNB()))
+        # NB doesn't work with some numpy variables types, error sppecifics unknown :(
         # models.append(('SVM', SVC()))
         # evaluate each model in turn
         scoring = 'neg_mean_squared_error'
     else: 
-        print ( 'Y variable: "' + y_var_name + '" is categorical' )
+        print ( 'y variable: "' + y_var_name + '" is categorical' )
         models.append(('LR', LogisticRegression()))
         models.append(('LDA', LinearDiscriminantAnalysis()))
         models.append(('KNN', KNeighborsClassifier()))
         models.append(('CART', DecisionTreeClassifier()))
         models.append(('NB', GaussianNB()))
-        models.append(('SVM', SVC()))
+        # models.append(('SVM', SVC()))
         scoring = 'accuracy'
     # prepare configuration for cross validation test harness
     results = []
     names = []
     seed = 7
     # evaluate each model in turn
-    for name, model in models:
+    for name, model in tqdm.tqdm(models):
         kfold = model_selection.KFold(n_splits=10, random_state=seed)
-        cv_results = model_selection.cross_val_score(model, X, Y, cv=kfold, scoring=scoring)
+        print(model)
+        cv_results = model_selection.cross_val_score(model, X, y, cv=kfold, scoring=scoring)
         results.append(cv_results)
         names.append(name)
-        msg = "%s: mean: %f standard dev:(%f)" % (name, cv_results.mean(), cv_results.std())
-#         galgraphs.plot_coefs(model.coef_, df.drop(y_var_name, axis = 1).columns)
+        msg = "%s: mean=%f std=%f" % (name, cv_results.mean(), cv_results.std())
         print(msg)
+        #ADD GRIDSEARCH HERE
+        model.fit(X,y)
+        #Plot Predicteds vs Actuals
+        fig, ax = plt.subplots(figsize=(12, 4))
+        ax.set_title(name + " Predicteds vs Actuals at " + df.drop(y_var_name, axis = 1).columns[0])
+        ax.scatter(df[df.drop(y_var_name, axis = 1).columns[0]], df[y_var_name], color="grey", alpha=0.5)
+        ax.scatter(df[df.drop(y_var_name, axis = 1).columns[0]], model.predict(X))
+        plt.show()
+        #plot coefficients
+        if "coef_" in dir(model):
+            coefs = model.coef_
+            columns=list(df.columns)
+            columns.remove(y_var_name)
+            while (type(coefs[0]) is list) or (type(coefs[0]) is np.ndarray):
+                coefs = list(coefs[0])
+        galgraphs.plot_coefs(coefs=coefs, columns=columns, graph_name=name)
+        plt.show()
+        
+        #plot partial dependences
+        galgraphs.shaped_plot_partial_dependences(model, df, y_var_name)
+#         plot_partial_dependences(model, df[columns], columns, df[y_var_name])
+        # galgraphs.plot_many_residuals(df_X=df.drop(y_var_name, axis=1),y=df[y_var_name], y_hat=model.predict(df.drop(y_var_name, axis=1)))
+        df_X = df.drop(y_var_name, axis=1)
+        y_hat = model.predict(df_X)
+        if len(y)>0:
+            if len(y) == len(y_hat):
+                (continuous_features, category_features) = sort_features(df_X)
+                galgraphs.plot_many_predicteds_vs_actuals(df_X, continuous_features, y, y_hat.reshape(-1), n_bins=50)
+                # galgraphs.plot_many_predicteds_vs_actuals(df_X, category_features, y, y_hat.reshape(-1), n_bins=50)
+                # add feature to jitter plot to categorical features
+                # add cdf???
+                fig, ax = plt.subplots()
+                galgraphs.plot_residual_error(ax, df_X.values[:,0].reshape(-1), y.reshape(-1), y_hat.reshape(-1), s=30);
+                print(f'{name}: MSE = {np.mean((y_hat-y)**2)}')
+            else:
+                print ('len(y) != len(y_hat), so no regpressions included' )
+        else: 
+            print( 'No y, so no regressions included')
     # boxplot algorithm comparison
-    fig = plt.figure()
-    fig.suptitle('Algorithm Comparison')
-    ax = fig.add_subplot(111)
+    fig, ax = plt.subplots(1,1)
+    fig.suptitle(f'Model Comparisons: {scoring}')
     plt.boxplot(results)
     ax.set_xticklabels(names)
+    ax.set_ylabel(f'{scoring}')
     plt.show()
+
+    #boxplot of -log(error)
+    logresults=[] 
+    for i, result in enumerate(results):
+        logresults.append(np.log(-1*result))
+    fig, ax = plt.subplots(1,1)
+    fig.suptitle(f'Model Comparisons: log(-{scoring})')
+    plt.boxplot(logresults)
+    ax.set_xticklabels(names)
+    ax.set_ylabel(f'log(-{scoring})')
+
+    plt.show()
+    return names, results, models
 
 def make_one_ridge(df_X_train, y_train, X_test, alpha):
     rr = Ridge(alpha=alpha)
