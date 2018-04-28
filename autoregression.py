@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
 import pandas as pd
 from pandas.tools.plotting import scatter_matrix
 import scipy.stats as scs
@@ -15,12 +16,13 @@ from sklearn.model_selection import (KFold, train_test_split, cross_val_score)
 from sklearn.neighbors import KernelDensity
 from sklearn.linear_model import (LinearRegression, Ridge)
 from sklearn.pipeline import Pipeline
+from sklearn.ensemble import GradientBoostingRegressor, GradientBoostingClassifier, RandomForestRegressor, RandomForestClassifier
 from basis_expansions.basis_expansions import (
     Polynomial, LinearSpline, NaturalCubicSpline)
 from regression_tools.plotting_tools import (
     plot_univariate_smooth,
-    bootstrap_train,
     display_coef,
+    bootstrap_train,
     plot_bootstrap_coefs,
     plot_partial_depenence,
     plot_partial_dependences,
@@ -315,7 +317,7 @@ def auto_regression(df, df_test_X, y_var_name, y_test = [], num_alphas=100, alph
     galgraphs.plot_coefs(rr_optimized.coef_[0], df_test_X_added_features.columns)
     
     #plot partial dependencies
-    plot_partial_dependences()
+    # plot_partial_dependences()
 
     #plot residuals
     if len(y_test)>0:
@@ -341,9 +343,15 @@ def auto_regression(df, df_test_X, y_var_name, y_test = [], num_alphas=100, alph
     # galgraphs.plot_many_predicteds_vs_actuals(df, df.columns, y_var_name, y_hat, n_bins=50)
     return (y_hat, rr_optimized, trained_pipeline, y_cv_mean, y_cv_std)
 
-def compare_predictions(df, y_var_name, knots=5, univariates=True):
+def compare_predictions(df, y_var_name, knots=5, univariates=True, bootstraps=50):
     df = cleandata.clean_df(df, y_var_name)
+    # REMEMBER OLD DATAFRAME
+    df_unpiped = df.copy()
+    columns_unpiped = df.columns
+    columns_unpiped = list(columns_unpiped)
+    columns_unpiped.remove(y_var_name)
     print('df columns: ' + str(list(df.columns)))
+    # TRANSFORM DATAFRAME
     df_X = df.drop(y_var_name, axis = 1)
     pipeline = auto_spline_pipeliner(df_X, knots=5)
     pipeline.fit(df_X)
@@ -353,40 +361,45 @@ def compare_predictions(df, y_var_name, knots=5, univariates=True):
     df = df_X
     df[y_var_name] = y
     print('df columns after transform: ' + str(list(df.columns)))
-    # prepare models
-    models = []
-    # decide if y is continuous or categorical
+    # CHOOSE MODELS FOR CONTINUOUS OR CATEGORICAL Y
+    names_models = []
     if ( 2 < len(np.unique(y)) ):
         if univariates==True:
             galgraphs.plot_many_univariates(df, y_var_name)
             plt.show()
-        #if continuous, make some splines HERE
         print ( 'y variable: "' + y_var_name + '" is continuous' )
-        models.append(('LR', LinearRegression())) # LinearRegression as no ._coeff???!
+        names_models.append(('LR', LinearRegression())) # LinearRegression as no ._coeff???!
         alpha_range = np.linspace(.0001, 10000,10)
-        models.append(('RR', RidgeCV(alphas=alpha_range)))
-        models.append(('LR', LassoCV()))
-        models.append(('CART', DecisionTreeRegressor()))
-        # models.append(('NB', GaussianNB()))
-        # NB doesn't work with some numpy variables types, error sppecifics unknown :(
-        # models.append(('SVM', SVC()))
+        names_models.append(('RR', RidgeCV(alphas=alpha_range)))
+        names_models.append(('LASSO', LassoCV()))
+        names_models.append(('DT', DecisionTreeRegressor()))
+        names_models.append(('RF', RandomForestRegressor()))
+        names_models.append(('GB', GradientBoostingRegressor()))
+        names_models.append(('NB', GaussianNB()))
+        # names_models.append(('SVM', SVC()))
         # evaluate each model in turn
         scoring = 'neg_mean_squared_error'
     else: 
         print ( 'y variable: "' + y_var_name + '" is categorical' )
-        models.append(('LR', LogisticRegression()))
-        models.append(('LDA', LinearDiscriminantAnalysis()))
-        models.append(('KNN', KNeighborsClassifier()))
-        models.append(('CART', DecisionTreeClassifier()))
-        models.append(('NB', GaussianNB()))
-        # models.append(('SVM', SVC()))
+        names_models.append(('LR', LogisticRegression()))
+        # names_models.append(('LDA', LinearDiscriminantAnalysis()))
+        # names_models.append(('KNN', KNeighborsClassifier()))
+        # names_models.append(('DT', DecisionTreeClassifier()))
+        # names_models.append(('NB', GaussianNB()))
+        # names_models.append(('RF', RandomForestClassifier()))
+        # names_models.append(('GB', GradientBoostingClassifier())
+        # names_models.append(('SVM', SVC()))
         scoring = 'accuracy'
-    # prepare configuration for cross validation test harness
+    models = [x[1] for x in names_models]
+    fit_models = []
+
+    # evaluate each model in turn
     results = []
     names = []
     seed = 7
-    # evaluate each model in turn
-    for name, model in tqdm.tqdm(models):
+    for name, model in tqdm.tqdm(names_models):
+
+        # CROSS VALIDATE MODELS
         kfold = model_selection.KFold(n_splits=10, random_state=seed)
         print(model)
         cv_results = model_selection.cross_val_score(model, X, y, cv=kfold, scoring=scoring)
@@ -394,28 +407,45 @@ def compare_predictions(df, y_var_name, knots=5, univariates=True):
         names.append(name)
         msg = "%s: mean=%f std=%f" % (name, cv_results.mean(), cv_results.std())
         print(msg)
-        #ADD GRIDSEARCH HERE
+
+        # ADD GRIDSEARCH HERE
+
+        # FIT MODEL WITH ALL DATA
         model.fit(X,y)
-        #Plot Predicteds vs Actuals
+        fit_models.append(model)
+
+        # PLOT PREDICTED VS ACTUALS
         fig, ax = plt.subplots(figsize=(12, 4))
         ax.set_title(name + " Predicteds vs Actuals at " + df.drop(y_var_name, axis = 1).columns[0])
         ax.scatter(df[df.drop(y_var_name, axis = 1).columns[0]], df[y_var_name], color="grey", alpha=0.5)
         ax.scatter(df[df.drop(y_var_name, axis = 1).columns[0]], model.predict(X))
         plt.show()
-        #plot coefficients
+
+        # MAKE BOOTSTRAPS
+        bootstrap_models = bootstrap_train_premade(model, X, y, bootstraps=bootstraps, fit_intercept=False)
+
+        #PLOT COEFFICIANTS
         if "coef_" in dir(model):
             coefs = model.coef_
             columns=list(df.columns)
             columns.remove(y_var_name)
             while (type(coefs[0]) is list) or (type(coefs[0]) is np.ndarray):
                 coefs = list(coefs[0])
-        galgraphs.plot_coefs(coefs=coefs, columns=columns, graph_name=name)
-        plt.show()
+            galgraphs.plot_coefs(coefs=coefs, columns=columns, graph_name=name)
+            plt.show()
+
+            # PLOT BOOTSTRAP COEFS
+            # fig, axs = plot_bootstrap_coefs(bootstrap_models, df_X.columns, n_col=4)
+            # fig.tight_layout()
+            # plt.show()
         
-        #plot partial dependences
-        galgraphs.shaped_plot_partial_dependences(model, df, y_var_name)
-#         plot_partial_dependences(model, df[columns], columns, df[y_var_name])
-        # galgraphs.plot_many_residuals(df_X=df.drop(y_var_name, axis=1),y=df[y_var_name], y_hat=model.predict(df.drop(y_var_name, axis=1)))
+        # PLOT PARTIAL DEPENDENCIES
+        plot_partial_dependences(model, X=df_unpiped.drop(y_var_name, axis=1), var_names=columns_unpiped, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
+        plt.show()
+        # galgraphs.shaped_plot_partial_dependences(model, df, y_var_name)
+        # plt.show()
+
+        # PLOT PREDICTED VS ACTUALS
         df_X = df.drop(y_var_name, axis=1)
         y_hat = model.predict(df_X)
         if len(y)>0:
@@ -432,26 +462,39 @@ def compare_predictions(df, y_var_name, knots=5, univariates=True):
                 print ('len(y) != len(y_hat), so no regpressions included' )
         else: 
             print( 'No y, so no regressions included')
-    # boxplot algorithm comparison
-    fig, ax = plt.subplots(1,1)
-    fig.suptitle(f'Model Comparisons: {scoring}')
-    plt.boxplot(results)
-    ax.set_xticklabels(names)
-    ax.set_ylabel(f'{scoring}')
-    plt.show()
+    
+    # --COMPARE MODELS--
+    fig, ax = plt.subplots(2,2, figsize=(20,20))
+    ax = ax.flatten()
+    fig.suptitle(f'Model Crossval Scores: {scoring}')
+    ax[0].set_ylabel(f'{scoring}')
 
-    #boxplot of -log(error)
+    # BOX PLOTS
+    ax[0].boxplot(results)
+    ax[0].set_xticklabels(names)
+
+    # VIOLIN PLOTS
+    ax[1].violinplot(results)
+    ax[1].set_xticklabels(names)
+
+    #BOX PLOTS OF -LOG(ERROR)
     logresults=[] 
-    for i, result in enumerate(results):
-        logresults.append(np.log(-1*result))
-    fig, ax = plt.subplots(1,1)
-    fig.suptitle(f'Model Comparisons: log(-{scoring})')
-    plt.boxplot(logresults)
-    ax.set_xticklabels(names)
-    ax.set_ylabel(f'log(-{scoring})')
+    ax[2].boxplot(results)
+    ax[2].set_xticklabels(names)
+    ax[2].set_ylabel(f'{scoring}')
+    ax[2].set_yscale('log')
+    ax[2].get_yaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
 
+    #VIOLIN PLOTS OF -LOG(ERROR)
+    logresults=[]
+    ax[3].violinplot(results)
+    ax[3].set_xticklabels(names)
+    ax[3].set_ylabel(f'-{scoring}')
+    ax[3].set_yscale('log')
+    ax[3].get_yaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
     plt.show()
-    return names, results, models
+
+    return names, results, names_models, pipeline
 
 def make_one_ridge(df_X_train, y_train, X_test, alpha):
     rr = Ridge(alpha=alpha)
@@ -488,6 +531,35 @@ def make_plots(df, y_var_name, pipeliner = auto_spline_pipeliner, knots=10):
     #     te = tte['train_scores']
     #     train_errors[idx, :] = te
     # mean_train_errors = np.mean(train_errors, axis=0)
+
+def bootstrap_train_premade(model, X, y, bootstraps=1000, **kwargs):
+    """Train a (linear) model on multiple bootstrap samples of some data and
+    return all of the parameter estimates.
+
+    Parameters
+    ----------
+    model: A sklearn class whose instances have a `fit` method, and a `coef_`
+    attribute.
+
+    X: A two dimensional numpy array of shape (n_observations, n_features).
+    
+    y: A one dimensional numpy array of shape (n_observations).
+
+    bootstraps: An integer, the number of boostrapped names_models to train.
+
+    Returns
+    -------
+    bootstrap_coefs: A (bootstraps, n_features) numpy array.  Each row contains
+    the parameter estimates for one trained boostrapped model.
+    """
+    bootstrap_models = []
+    for i in range(bootstraps):
+        boot_idxs = np.random.choice(X.shape[0], size=X.shape[0], replace=True)
+        X_boot = X[boot_idxs, :]
+        y_boot = y[boot_idxs]
+        model.fit(X_boot, y_boot)
+        bootstrap_models.append(model)
+    return bootstrap_models
 
 if __name__ == "__main__":
     balance_non_zero = pd.read_csv("/Users/macbookpro/Dropbox/Galvanize/lectures/DSI_Lectures/regularized-regression/matt_drury/balance_non_zero.csv", index_col=0)
