@@ -343,13 +343,27 @@ def auto_regression(df, df_test_X, y_var_name, y_test = [], num_alphas=100, alph
     # galgraphs.plot_many_predicteds_vs_actuals(df, df.columns, y_var_name, y_hat, n_bins=50)
     return (y_hat, rr_optimized, trained_pipeline, y_cv_mean, y_cv_std)
 
-def compare_predictions(df, y_var_name, knots=5, univariates=True, bootstraps=50):
+def compare_predictions(df, y_var_name, percent_data=None, possible_categories=11, knots=5, univariates=True, bootstraps=50):
+    if percent_data == None:
+        while len(df)>1000:
+            print(f"'percent_data' NOT SPECIFIED AND len(df)=({len(df)}) IS > 1000: TAKING A RANDOM %10 OF THE SAMPLE")
+            df = df.sample(frac=.1)
+    else:
+        df = df.sample(frac=percent_data)
     df = cleandata.clean_df(df, y_var_name)
     # REMEMBER OLD DATAFRAME
     df_unpiped = df.copy()
     columns_unpiped = df.columns
     columns_unpiped = list(columns_unpiped)
     columns_unpiped.remove(y_var_name)
+
+    # REMOVE CATEGORICAL VARIABLES THAT HAVE TOO MANY CATEGORIES TO BE USEFUL
+    (continuous_features, category_features) = sort_features(df.drop(y_var_name, axis=1))
+    for cat in category_features:
+        if len(df[cat].unique())>possible_categories:
+            df.drop(cat, axis=1)
+        print('Too many unique values in categorical feature "' + cat + '", dropping "' + cat + '"')
+
     print('df columns: ' + str(list(df.columns)))
     # TRANSFORM DATAFRAME
     df_X = df.drop(y_var_name, axis = 1)
@@ -361,6 +375,7 @@ def compare_predictions(df, y_var_name, knots=5, univariates=True, bootstraps=50
     df = df_X
     df[y_var_name] = y
     print('df columns after transform: ' + str(list(df.columns)))
+
     # CHOOSE MODELS FOR CONTINUOUS OR CATEGORICAL Y
     names_models = []
     if ( 2 < len(np.unique(y)) ):
@@ -375,7 +390,6 @@ def compare_predictions(df, y_var_name, knots=5, univariates=True, bootstraps=50
         names_models.append(('DT', DecisionTreeRegressor()))
         names_models.append(('RF', RandomForestRegressor()))
         names_models.append(('GB', GradientBoostingRegressor()))
-        names_models.append(('NB', GaussianNB()))
         # names_models.append(('SVM', SVC()))
         # evaluate each model in turn
         scoring = 'neg_mean_squared_error'
