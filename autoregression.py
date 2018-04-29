@@ -293,7 +293,7 @@ def auto_regression(df, df_test_X, y_var_name, y_test = [], num_alphas=100, alph
     #     df_graphable = df[continuous_features[:15]]
     #     print('More continuous features than are graphable in scatter_matrix')
     # pd.scatter_matrix(df_graphable,figsize = (14,len(df_graphable)*.1))
-    plt.show()
+    # plt.show()
     df = data_cleaner.clean_df_respect_to_y(df, y_var_name)
     df_y = df[y_var_name]
     df_X = df.drop(y_var_name, axis = 1)
@@ -345,6 +345,7 @@ def auto_regression(df, df_test_X, y_var_name, y_test = [], num_alphas=100, alph
     return (y_hat, rr_optimized, trained_pipeline, y_cv_mean, y_cv_std)
 
 def compare_predictions(df, y_var_name, percent_data=None, possible_categories=11, knots=5, univariates=True, bootstraps=50):
+    
     if percent_data == None:
         while len(df)>1000:
             print(f"'percent_data' NOT SPECIFIED AND len(df)=({len(df)}) IS > 1000: TAKING A RANDOM %10 OF THE SAMPLE")
@@ -364,6 +365,18 @@ def compare_predictions(df, y_var_name, percent_data=None, possible_categories=1
         if len(df[cat].unique())>possible_categories:
             df.drop(cat, axis=1)
         print('Too many unique values in categorical feature "' + cat + '", dropping "' + cat + '"')
+
+    # SHOW CORRELATION MATRIX
+    plt.matshow(df.corr())
+    plt.show()
+
+    # KEEP ME: FIX BOOLEAN CASE BEFORE DELETING:
+    (continuous_features, category_features) = autoregression.sort_features(df)
+    if len(continuous_features)>9:
+        df_graphable = df[continuous_features[:9]].sample(n=1000)
+        print('More continuous features than are graphable in scatter_matrix')
+    pd.scatter_matrix(df_graphable, figsize=(len(df_graphable)*.11,len(df_graphable)*.1))
+    plt.show()
 
     print('df columns: ' + str(list(df.columns)))
     # TRANSFORM DATAFRAME
@@ -466,8 +479,9 @@ def compare_predictions(df, y_var_name, percent_data=None, possible_categories=1
         y_hat = model.predict(df_X)
         if len(y)>0:
             if len(y) == len(y_hat):
-                (continuous_features, category_features) = sort_features(df_X)
-                galgraphs.plot_many_predicteds_vs_actuals(df_X, continuous_features, y, y_hat.reshape(-1), n_bins=50)
+                if is_continuous:
+                    (continuous_features, category_features) = sort_features(df_X)
+                    galgraphs.plot_many_predicteds_vs_actuals(df_X, continuous_features, y, y_hat.reshape(-1), n_bins=50)
                 # galgraphs.plot_many_predicteds_vs_actuals(df_X, category_features, y, y_hat.reshape(-1), n_bins=50)
                 # add feature to jitter plot to categorical features
                 # add cdf???
