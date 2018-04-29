@@ -370,12 +370,20 @@ def compare_predictions(df, y_var_name, percent_data=None, possible_categories=1
     plt.matshow(df.corr())
     plt.show()
 
+    # MAKE SCATTER MATRIX
     # KEEP ME: FIX BOOLEAN CASE BEFORE DELETING:
-    (continuous_features, category_features) = autoregression.sort_features(df)
-    if len(continuous_features)>9:
-        df_graphable = df[continuous_features[:9]].sample(n=1000)
-        print('More continuous features than are graphable in scatter_matrix')
-    pd.scatter_matrix(df_graphable, figsize=(len(df_graphable)*.11,len(df_graphable)*.1))
+    if len(df) < 300:
+        sample_limit = len(df)
+    else:
+        sample_limit = 300
+    if y_var_name in continuous_features:
+        continuous_features.remove(y_var_name)
+    while 5 < len(continuous_features):
+        plot_sample_df = df[[y_var_name] + continuous_features[:6]].sample(n=sample_limit)
+        pd.scatter_matrix(plot_sample_df, figsize=(len(plot_sample_df)*.07,len(plot_sample_df)*.07))
+        continuous_features = continuous_features[5:]
+    plot_sample_df = df[[y_var_name] + continuous_features].sample(n=sample_limit)
+    pd.scatter_matrix(plot_sample_df, figsize=(len(plot_sample_df)*.1,len(plot_sample_df)*.1))
     plt.show()
 
     print('df columns: ' + str(list(df.columns)))
@@ -444,6 +452,7 @@ def compare_predictions(df, y_var_name, percent_data=None, possible_categories=1
         fit_models.append(model)
 
         # PLOT PREDICTED VS ACTUALS
+        plot_sample_df = df.sample(sample_limit)
         fig, ax = plt.subplots(figsize=(12, 4))
         ax.set_title(name + " Predicteds vs Actuals at " + df.drop(y_var_name, axis = 1).columns[0])
         ax.scatter(df[df.drop(y_var_name, axis = 1).columns[0]], df[y_var_name], color="grey", alpha=0.5)
