@@ -1,0 +1,64 @@
+autoregression
+
+TODO:
+	X add graphing utility to new super regression
+	X plot one var splines if continuous
+	X add Partial Dependence Plots
+	X Add autopipeline to data
+	X remove empty univariate graphs, empty bc of the 2 variable case 
+	X (detect number of cont varables ahead of time)
+	X some error in the partial depednecy plot
+	offer a random samling of the data
+	for categorical variables make PREDICTEDS VS ACTUALS a CMF plot comparison or A ROC curve
+	make alpha relative to number of rows
+	put cleandata.py, and galgraphs.py in autoregression
+	X toggle univariate
+	X turn off univariate plot for binary cases
+	Add relative importances of DT and RF.
+	X take the log of the bar graph errors
+	add jitter to the compare prediction in the binary case
+	X Add bootstrap to 'shaped_plot_partial_dependences' a-la 'plot_partial_dependences'
+	X add boosting
+	X Plot residuals
+	Decide if categorical column (non int or float) has too many categories, then drop column.
+	Add other method plottings: (Significance factors)
+	Plot Lasso Regression variables
+	add kept lasso regression variables back in (how many do we keep?!) to other datasets
+	Add 'take 10% sample first' and maybe even 1%
+	add nlp if longgggg string
+	add image processing (with that simple regression thing) if matrixes of equal size
+	Make barplots into violin plots
+	Add gridsearch to change scoring function
+
+
+	------
+	X Add ability to clean data!
+	X Test current regression against simple linear case
+	- Trouble shoot shitty regression
+		- look at coeffs
+		- look at features
+	Finish testing case study regression
+	X add ability to handle only continous variables
+	only ability to handle only categories variables
+	X add ability to handle regressions
+	- add ability to handle categorical results in y column
+	X Make ALL THE GRAPH
+	X graph the coeffs
+	- make testing ability
+	- detect loads of text, nlp it. 
+	X make graphs?
+	X Remove splines from multiuse?
+	X Create testing environment
+	X Compare regressions
+	- Handle/drop dates
+	- Handle units?
+	X Remove data leakage from N/A or INF results in the answers. DROP THOSE COLUMNS INSTEAD.
+	- Try one data set
+	- Try lasso
+	- Remove standarization for y
+	X need to make a separate parameter for the 1000 year old cases
+	- make it's own test set
+	- offer changes to plotting_tools from the changes in galgraphs: the tools are more generalized this way. (Or at least the ability to handle new cases)
+Writeup:
+
+It is well known that data scientists spend 90% of their time cleaning data. That leaves a 1.8billion dollars on the table for the one who can automatically clean a dataset. 
