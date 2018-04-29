@@ -533,7 +533,7 @@ def compare_predictions(df, y_var_name, percent_data=None, possible_categories=1
 
     # ROC CURVE
     # print(f'categorical? {str(!is_continuous)}')
-    if ~is_continuous:
+    if not is_continuous:
         galgraphs.plot_rocs(models, df_X, y)
         plt.show()
     return names, results, models, pipeline
