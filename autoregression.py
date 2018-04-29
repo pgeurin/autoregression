@@ -32,6 +32,7 @@ from regression_tools.dftransformers import (
     FeatureUnion, MapFeature,
     StandardScaler, Intercept)
 from sklearn import model_selection
+from sklearn.metrics import auc, roc_curve
 from sklearn.linear_model import LogisticRegression, RidgeCV, LassoCV
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsClassifier
@@ -378,18 +379,19 @@ def compare_predictions(df, y_var_name, percent_data=None, possible_categories=1
 
     # CHOOSE MODELS FOR CONTINUOUS OR CATEGORICAL Y
     names_models = []
-    if ( 2 < len(np.unique(y)) ):
+    is_continuous = 2 < len(y.unique())
+    if is_continuous:
+        print ( 'y variable: "' + y_var_name + '" is continuous' )
         if univariates==True:
             galgraphs.plot_many_univariates(df, y_var_name)
             plt.show()
-        print ( 'y variable: "' + y_var_name + '" is continuous' )
         names_models.append(('LR', LinearRegression())) # LinearRegression as no ._coeff???!
         alpha_range = np.linspace(.0001, 10000,10)
         names_models.append(('RR', RidgeCV(alphas=alpha_range)))
-        names_models.append(('LASSO', LassoCV()))
-        names_models.append(('DT', DecisionTreeRegressor()))
-        names_models.append(('RF', RandomForestRegressor()))
-        names_models.append(('GB', GradientBoostingRegressor()))
+        # names_models.append(('LASSO', LassoCV()))
+        # names_models.append(('DT', DecisionTreeRegressor()))
+        # names_models.append(('RF', RandomForestRegressor()))
+        # names_models.append(('GB', GradientBoostingRegressor()))
         # names_models.append(('SVM', SVC()))
         # evaluate each model in turn
         scoring = 'neg_mean_squared_error'
@@ -398,7 +400,7 @@ def compare_predictions(df, y_var_name, percent_data=None, possible_categories=1
         names_models.append(('LR', LogisticRegression()))
         # names_models.append(('LDA', LinearDiscriminantAnalysis()))
         # names_models.append(('KNN', KNeighborsClassifier()))
-        # names_models.append(('DT', DecisionTreeClassifier()))
+        names_models.append(('DT', DecisionTreeClassifier()))
         # names_models.append(('NB', GaussianNB()))
         # names_models.append(('RF', RandomForestClassifier()))
         # names_models.append(('GB', GradientBoostingClassifier())
@@ -484,31 +486,34 @@ def compare_predictions(df, y_var_name, percent_data=None, possible_categories=1
     ax[0].set_ylabel(f'{scoring}')
 
     # BOX PLOTS
-    ax[0].boxplot(results)
-    ax[0].set_xticklabels(names)
+    ax[0].boxplot(results, vert=False)
+    ax[0].set_yticklabels(names)
 
     # VIOLIN PLOTS
-    ax[1].violinplot(results)
-    ax[1].set_xticklabels(names)
-
+    ax[1].violinplot(results, vert=False)
+    ax[1].set_yticklabels(names)
+    
     #BOX PLOTS OF -LOG(ERROR)
-    logresults=[] 
-    ax[2].boxplot(results)
-    ax[2].set_xticklabels(names)
-    ax[2].set_ylabel(f'{scoring}')
-    ax[2].set_yscale('log')
-    ax[2].get_yaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+    ax[2].boxplot(results, vert=False)
+    ax[2].set_yticklabels(names)
+    ax[2].set_xlabel(f'{scoring}')
+    ax[2].set_xscale('log')
+    ax[2].get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
 
     #VIOLIN PLOTS OF -LOG(ERROR)
-    logresults=[]
-    ax[3].violinplot(results)
-    ax[3].set_xticklabels(names)
-    ax[3].set_ylabel(f'-{scoring}')
-    ax[3].set_yscale('log')
-    ax[3].get_yaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+    ax[3].violinplot(results, vert=False)
+    ax[3].set_yticklabels(names)
+    ax[3].set_xlabel(f'-{scoring}')
+    ax[3].set_xscale('log')
+    ax[3].get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
     plt.show()
 
-    return names, results, names_models, pipeline
+    # ROC CURVE
+    # print(f'categorical? {str(!is_continuous)}')
+    if ~is_continuous:
+        galgraphs.plot_rocs(models, df_X, y)
+        plt.show()
+    return names, results, models, pipeline
 
 def make_one_ridge(df_X_train, y_train, X_test, alpha):
     rr = Ridge(alpha=alpha)
