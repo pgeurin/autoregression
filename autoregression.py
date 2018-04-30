@@ -364,7 +364,7 @@ def compare_predictions(df, y_var_name, percent_data=None, possible_categories=1
     for cat in category_features:
         if len(df[cat].unique())>possible_categories:
             df.drop(cat, axis=1)
-        print('Too many unique values in categorical feature "' + cat + '", dropping "' + cat + '"')
+            print('Too many unique values in categorical feature "' + cat + '", dropping "' + cat + '"')
 
     # SHOW CORRELATION MATRIX
     plt.matshow(df.corr())
@@ -377,7 +377,7 @@ def compare_predictions(df, y_var_name, percent_data=None, possible_categories=1
     else:
         sample_limit = 300
     if y_var_name in continuous_features:
-        continuous_features.remove(y_var_name)
+        continuous_features.remove(y_va r_name)
     while 5 < len(continuous_features):
         plot_sample_df = df[[y_var_name] + continuous_features[:6]].sample(n=sample_limit)
         pd.scatter_matrix(plot_sample_df, figsize=(len(plot_sample_df)*.07,len(plot_sample_df)*.07))
