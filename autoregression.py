@@ -50,12 +50,19 @@ import stringcase
 plt.style.use('ggplot')
 
 import os
-sys.path.append(os.path.abspath("/Users/macbookpro/Dropbox/Galvanize/autoregression/"))
-import cleandata
 import importlib.util
-spec = importlib.util.spec_from_file_location("galgraphs", "/Users/macbookpro/Dropbox/Galvanize/autoregression/galgraphs.py")
-galgraphs = importlib.util.module_from_spec(spec)
+
+# spec = importlib.util.spec_from_file_location("galgraphs", "/Users/macbookpro/Dropbox/Galvanize/autoregression/galgraphs.py")
+# galgraphs = importlib.util.module_from_spec(spec)
 import galgraphs
+
+# import imp
+# galgraphs = imp.load_source('galgraphs', '/Users/macbookpro/Dropbox/Galvanize/autoregression/galgraphs.py')
+
+spec = importlib.util.spec_from_file_location("cleandata", "/Users/macbookpro/Dropbox/Galvanize/autoregression/cleandata.py")
+cleandata = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(cleandata)
+
 import tqdm
 import time
 
@@ -340,7 +347,7 @@ def auto_regression(df, df_test_X, y_var_name, y_test = [], num_alphas=100, alph
     # galgraphs.plot_many_predicteds_vs_actuals(df, df.columns, y_var_name, y_hat, n_bins=50)
     return (y_hat, rr_optimized, trained_pipeline, y_cv_mean, y_cv_std)
 
-def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, knots=5, partial_dep=True, univariates=True, bootstraps=10):
+def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, knots=5, partial_dep=True, plot_y_and_y_hat=True, plot_residual=True, univariates=True, bootstraps=10):
     def timeit(func, *args):
         start = time.time()
         answers = func(args)
@@ -371,11 +378,12 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
     # REMOVE CATEGORICAL VARIABLES THAT HAVE TOO MANY CATEGORIES TO BE USEFUL
     df = cleandata.remove_diverse_categories(df, y_var_name, category_limit)
 
+
+    # SHOW CORRELATION MATRIX
     if len(df) < 300:
         sample_limit = len(df)
     else:
         sample_limit = 300
-    # SHOW CORRELATION MATRIX
     start = time.time()
     plt.matshow(df.sample(sample_limit).corr())
     plt.show()
@@ -428,8 +436,8 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
         # names_models.append(('KNN', KNeighborsClassifier()))
         names_models.append(('DT', DecisionTreeClassifier()))
         # names_models.append(('NB', GaussianNB()))
-        # names_models.append(('RF', RandomForestClassifier()))
-        # names_models.append(('GB', GradientBoostingClassifier())
+        names_models.append(('RF', RandomForestClassifier()))
+        names_models.append(('GB', GradientBoostingClassifier()))
         names_models.append(('DT', AdaBoostClassifier()))
         # names_models.append(('SVM', SVC()))
         scoring = 'accuracy'
@@ -518,31 +526,40 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
             print(f'PLOT PARTIAL DEPENDENCIES TIME: {time.time() - start}')
 
         # PLOT PREDICTED VS ACTUALS
-        df_X = df.drop(y_var_name, axis=1)
-        y_hat = model.predict(df_X)
+
+        df_X_sample = df.sample(sample_limit).drop(y_var_name, axis=1)
+        y_hat_sample = model.predict(df_X_sample)
         if is_continuous:
             if len(y)>0:
-                if len(y) == len(y_hat):
-                    (continuous_features, category_features) = sort_features(df_X)
-                    start = time.time()
-                    galgraphs.plot_many_predicteds_vs_actuals(df_X, continuous_features, y, y_hat.reshape(-1), n_bins=50)
-                    plt.show()
+                if len(y) == len(y_hat_sample):
+                    if plot_y_and_y_hat_sample:
+                        (continuous_features, category_features) = sort_features(df_X_sample)
+                        start = time.time()
+                        galgraphs.plot_many_predicteds_vs_actuals(df_X_sample, continuous_features, y, y_hat_sample.reshape(-1), n_bins=50)
+                        plt.show()
 
-                    print(f'PLOT PREDICTEDS_VS_ACTUALS TIME: {time.time() - start}')
-                    # galgraphs.plot_many_predicteds_vs_actuals(df_X, category_features, y, y_hat.reshape(-1), n_bins=50)
-                    # add feature to jitter plot to categorical features
-                    # add cdf???
-                    start = time.time()
-                    fig, ax = plt.subplots()
-                    galgraphs.plot_residual_error(ax, df_X.values[:,0].reshape(-1), y.reshape(-1), y_hat.reshape(-1), s=30);
-                    plt.show()
+                        print(f'PLOT PREDICTEDS_VS_ACTUALS TIME: {time.time() - start}')
+                        # galgraphs.plot_many_predicteds_vs_actuals(df_X_sample, category_features, y, y_hat_sample.reshape(-1), n_bins=50)
+                        # add feature to jitter plot to categorical features
+                        # add cdf???
+                    if plot_residuals:
+                        start = time.time()
+                        fig, ax = plt.subplots()
+                        galgraphs.plot_residual_error(ax, df_X_sample.values[:,0].reshape(-1), y.reshape(-1), y_hat_sample.reshape(-1), s=30);
+                        plt.show()
 
                     print(f'PLOT RESIDUAL ERROR TIME: {time.time() - start}')
-                    print(f'{name}: MSE = {np.mean((y_hat-y)**2)}')
                 else:
                     print ('len(y) != len(y_hat), so no regpressions included' )
             else:
                 print( 'No y, so no regressions included')
+
+        #Fit MODELS
+        df_X = df.drop(y_var_name, axis=1)
+        y_hat = model.predict(df_X)
+
+        # get logloss later
+        print(f'{name}: MSE = {np.mean((y_hat-y)**2)}')
 
     # --COMPARE MODELS--
     start = time.time()

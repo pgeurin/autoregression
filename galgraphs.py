@@ -35,8 +35,15 @@ from regression_tools.plotting_tools import (
                                 predicteds_vs_actuals)
 import sys
 import os
-sys.path.append(os.path.abspath("/Users/macbookpro/Dropbox/Galvanize/autoregression/"))
-import autoregression
+import importlib.util
+spec = importlib.util.spec_from_file_location("cleandata", "/Users/macbookpro/Dropbox/Galvanize/autoregression/cleandata.py")
+cleandata = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(cleandata)
+
+spec = importlib.util.spec_from_file_location("autoregression", "/Users/macbookpro/Dropbox/Galvanize/autoregression/autoregression.py")
+autoregression = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(autoregression)
+
 # Always make it pretty.
 plt.style.use('ggplot')
 import tqdm
