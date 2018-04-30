@@ -173,6 +173,15 @@ def plot_many_univariates(df, y_var_name):
     else:
         print( 'No Continous Features to Plot')
 
+def plot_predicted_vs_actuals(df, model, X, name, y_var_name, sample_limit):
+    X = df.drop(y_var_name, axis=1).values
+    name = model.__class__.__name__
+    plot_sample_df = df.sample(sample_limit)
+    fig, ax = plt.subplots(figsize=(12, 4))
+    ax.set_title(name + " Predicteds vs Actuals at " + df.drop(y_var_name, axis = 1).columns[0])
+    ax.scatter(df[df.drop(y_var_name, axis = 1).columns[0]], df[y_var_name], color="grey", alpha=0.5)
+    ax.scatter(df[df.drop(y_var_name, axis = 1).columns[0]], model.predict(X))
+
 def plot_many_predicteds_vs_actuals(df_X, x_var_names, df_y, y_hat, n_bins=50):
     """ Plots all the y predictions 'y_hat' vs the result data in the dataframe in column y_var_name
     INPUT:
@@ -498,6 +507,7 @@ def plot_train_and_test_error(ax, train_and_test_errors, alpha=1.0, linewidth=2,
     if legend:
         ax.legend()
 
-def plot_train_and_test_error()
-    train_and_test_errors = train_and_test_error(
-    ridge_regressions, balance_train, y_train, balance_test, y_test)
+def plot_train_and_test_error(ax, ridge_regressions, balance_train, y_train, balance_test, y_test):
+    train_and_test_errors = train_and_test_error(ridge_regressions, df=balance_train, y=y_train, df_test=balance_test, y_test=y_test)
+    fig, ax = plt.subplots(figsize=(16, 4))
+    plot_train_and_test_error(ax, train_and_test_errors)

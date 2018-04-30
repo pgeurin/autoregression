@@ -418,24 +418,28 @@ def compare_predictions(df, y_var_name, percent_data=None, possible_categories=1
             galgraphs.plot_many_univariates(df, y_var_name)
             plt.show()
         names_models.append(('LR', LinearRegression())) # LinearRegression as no ._coeff???!
-        alpha_range = np.logspace(.0001, 10000, 10)
-        # names_models.append(('RR', RidgeCV(alphas=alpha_range)))
-        # names_models.append(('LASSO', LassoCV()))
+        alphas = np.logspace(.0001, 10000, 10)
+        # names_models.append(('RR', RidgeCV(alphas=alphas)))
+        # names_models.append(('LASSO', LassoCV(alphas=alphas)))
         # names_models.append(('DT', DecisionTreeRegressor()))
         # names_models.append(('RF', RandomForestRegressor()))
         # names_models.append(('GB', GradientBoostingRegressor()))
+        # names_models.append(('GB', AdaBoostRegressor()))
         # names_models.append(('SVM', SVC()))
         # evaluate each model in turn
         scoring = 'neg_mean_squared_error'
     else:
+        alphas = np.logspace(.0001, 10000, 10)
         print ( 'y variable: "' + y_var_name + '" is categorical' )
         names_models.append(('LR', LogisticRegression()))
         # names_models.append(('LDA', LinearDiscriminantAnalysis()))
+        names_models.append(('LC', RidgeClassifierCV(alphas=alpha_range)))
         # names_models.append(('KNN', KNeighborsClassifier()))
         names_models.append(('DT', DecisionTreeClassifier()))
         # names_models.append(('NB', GaussianNB()))
         # names_models.append(('RF', RandomForestClassifier()))
         # names_models.append(('GB', GradientBoostingClassifier())
+        names_models.append(('DT', AdaBoostClassifier()))
         # names_models.append(('SVM', SVC()))
         scoring = 'accuracy'
     models = [x[1] for x in names_models]
@@ -451,10 +455,24 @@ def compare_predictions(df, y_var_name, percent_data=None, possible_categories=1
         kfold = model_selection.KFold(n_splits=10, random_state=seed)
         print(model)
         cv_results = model_selection.cross_val_score(model, X, y, cv=kfold, scoring=scoring)
+
         results.append(cv_results)
         names.append(name)
         msg = "%s: mean=%f std=%f" % (name, cv_results.mean(), cv_results.std())
         print(msg)
+
+        # #OTHER CROSS VALIDATE METHOD:
+        # ridge_regularization_strengths = np.logspace(np.log10(0.000001), np.log10(100000000), num=100)
+        # ridge_regressions = []
+        # y=df['age']
+        # df_X = df.drop('age', axis=1)
+        # for alpha in ridge_regularization_strengths:
+        #     ridge = Ridge(alpha=alpha)
+        #     ridge.fit(df_X, y)
+        #     ridge_regressions.append(ridge)
+        # fig, ax = plt.subplots(figsize=(16, 6))
+        # galgraphs.plot_solution_paths(ax, ridge_regressions)
+
 
         # ADD GRIDSEARCH HERE
 
@@ -465,11 +483,7 @@ def compare_predictions(df, y_var_name, percent_data=None, possible_categories=1
         # PLOT PREDICTED VS ACTUALS
         start = time.time()
         if is_continuous:
-            plot_sample_df = df.sample(sample_limit)
-            fig, ax = plt.subplots(figsize=(12, 4))
-            ax.set_title(name + " Predicteds vs Actuals at " + df.drop(y_var_name, axis = 1).columns[0])
-            ax.scatter(df[df.drop(y_var_name, axis = 1).columns[0]], df[y_var_name], color="grey", alpha=0.5)
-            ax.scatter(df[df.drop(y_var_name, axis = 1).columns[0]], model.predict(X))
+            galgraphs.plot_predicted_vs_actuals(df, model, y_var_name, sample_limit)
             plt.show()
         stop = time.time()
         print(f'PLOT PREDICTED VS ACTUALS TIME: {stop-start}')
