@@ -10,7 +10,7 @@ spec = importlib.util.spec_from_file_location("galgraphs", "/Users/macbookpro/Dr
 galgraphs = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(galgraphs)
 
-import sys 
+import sys
 import os
 sys.path.append(os.path.abspath("/Users/macbookpro/Dropbox/Galvanize/autoregression/"))
 import autoregression
@@ -23,8 +23,8 @@ def rename_columns(df):
     return df
 
 def add_feature_continuous_condition(df_X, feature_name, indicator, number):
-    ops = {"==": operator.is_, 
-           "!=": operator.is_not, 
+    ops = {"==": operator.is_,
+           "!=": operator.is_not,
            '<': operator.lt,
            '<=': operator.le,
           '>': operator.gt,
@@ -46,7 +46,7 @@ def add_feature_continuous_null(df_X, feature_name):
     if (df_X[feature_name] == -np.inf).any():
         df_X[feature_name + "_was_neg_inf"] = (df_X[feature_name] == np.inf)
         df_X[feature_name][df_X[feature_name] == -np.inf] = np.mean(df_X[feature_name][df_X[feature_name] != -np.inf])
-        
+
     if pd.isnull(df_X[feature_name]).any():
         df_X[feature_name + "_was_null"] = pd.isnull(df_X[feature_name])
         df_X[feature_name][pd.isnull(df_X[feature_name])] = np.mean(df_X[feature_name][~pd.isnull(df_X[feature_name])])
@@ -79,5 +79,13 @@ def clean_df(df, y_var_name):
     df_X = clean_df_X(df_X)
     df = df_X
     df[y_var_name] = df_y
+    return df
+
+def remove_diverse_categories(df, y_var_name):
+    (continuous_features, category_features) = autoregression.sort_features(df.drop(y_var_name, axis=1))
+    for cat in category_features:
+        if len(df[cat].unique())>possible_categories:
+            df.drop(cat, axis=1)
+            print('Too many unique values in categorical feature "' + cat + '", dropping "' + cat + '"')
     return df
 # TODO: Turn these into pipelines

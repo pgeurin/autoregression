@@ -360,14 +360,7 @@ def compare_predictions(df, y_var_name, percent_data=None, possible_categories=1
     columns_unpiped.remove(y_var_name)
 
     # REMOVE CATEGORICAL VARIABLES THAT HAVE TOO MANY CATEGORIES TO BE USEFUL
-    def remove_diverse_categories(df, y_var_name):
-        (continuous_features, category_features) = sort_features(df.drop(y_var_name, axis=1))
-        for cat in category_features:
-            if len(df[cat].unique())>possible_categories:
-                df.drop(cat, axis=1)
-                print('Too many unique values in categorical feature "' + cat + '", dropping "' + cat + '"')
-        return df
-    df = remove_diverse_categories(df, y_var_name)
+    df = cleandata.remove_diverse_categories(df, y_var_name)
 
     if len(df) < 300:
         sample_limit = len(df)
