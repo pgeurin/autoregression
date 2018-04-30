@@ -62,7 +62,6 @@ import galgraphs
 import tqdm
 import time
 
-
 def sort_features(df):
     """Takes a dataframe, returns lists of continuous and category (category) features
     INPUT: dataframe
@@ -344,7 +343,7 @@ def auto_regression(df, df_test_X, y_var_name, y_test = [], num_alphas=100, alph
     # galgraphs.plot_many_predicteds_vs_actuals(df, df.columns, y_var_name, y_hat, n_bins=50)
     return (y_hat, rr_optimized, trained_pipeline, y_cv_mean, y_cv_std)
 
-def compare_predictions(df, y_var_name, percent_data=None, possible_categories=11, knots=5, univariates=True, bootstraps=50):
+def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, knots=5, univariates=True, bootstraps=50):
     plt.show()
     if percent_data == None:
         while len(df)>1000:
@@ -360,7 +359,7 @@ def compare_predictions(df, y_var_name, percent_data=None, possible_categories=1
     columns_unpiped.remove(y_var_name)
 
     # REMOVE CATEGORICAL VARIABLES THAT HAVE TOO MANY CATEGORIES TO BE USEFUL
-    df = cleandata.remove_diverse_categories(df, y_var_name)
+    df = cleandata.remove_diverse_categories(df, y_var_name, category_limit)
 
     if len(df) < 300:
         sample_limit = len(df)
@@ -436,6 +435,7 @@ def compare_predictions(df, y_var_name, percent_data=None, possible_categories=1
     for name, model in tqdm.tqdm(names_models):
 
         # CROSS VALIDATE MODELS
+        start = time.time()
         kfold = model_selection.KFold(n_splits=10, random_state=seed)
         print(model)
         cv_results = model_selection.cross_val_score(model, X, y, cv=kfold, scoring=scoring)
@@ -444,6 +444,9 @@ def compare_predictions(df, y_var_name, percent_data=None, possible_categories=1
         names.append(name)
         msg = "%s: mean=%f std=%f" % (name, cv_results.mean(), cv_results.std())
         print(msg)
+        plt.show()
+        stop = time.time()
+        print (f'GET CV RESULTS: {stop-start}')
 
         # #OTHER CROSS VALIDATE METHOD:
         # ridge_regularization_strengths = np.logspace(np.log10(0.000001), np.log10(100000000), num=100)

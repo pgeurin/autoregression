@@ -81,10 +81,10 @@ def clean_df(df, y_var_name):
     df[y_var_name] = df_y
     return df
 
-def remove_diverse_categories(df, y_var_name):
+def remove_diverse_categories(df, y_var_name, category_limit):
     (continuous_features, category_features) = autoregression.sort_features(df.drop(y_var_name, axis=1))
     for cat in category_features:
-        if len(df[cat].unique())>possible_categories:
+        if len(df[cat].unique())>category_limit:
             df.drop(cat, axis=1)
             print('Too many unique values in categorical feature "' + cat + '", dropping "' + cat + '"')
     return df
