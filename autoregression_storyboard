@@ -11,29 +11,30 @@ TODO:
 	X offer a random samling of the data
 	X? for categorical variables make PREDICTEDS VS ACTUALS A ROC curve
 	make alpha relative to number of rows
-	O put cleandata.py, and galgraphs.py in autoregression
+	X put cleandata.py, and galgraphs.py in autoregression
 	X toggle univariate
 	X turn off univariate plot for binary cases
-	O Add relative importances of DT and RF.
 	X take the log of the bar graph errors
-	O Add jitter to the compare prediction in the binary case
 	X Add bootstrap to 'shaped_plot_partial_dependences' a-la 'plot_partial_dependences'
 	X add boosting
 	X Plot residuals
 	X Decide if categorical column (non int or float) has too many categories, then drop column.
-	Orefactor graphing tools
-	O Add other method plottings: (Significance factors)
-	O Plot Lasso Regression variables
-	O add kept lasso regression variables back in (how many do we keep?!) to other datasets
+	X refactor graphing tools
 	X Add 'take 10% sample first' and maybe even 1%
-	O add nlp if longgggg string
-	O add image processing (with that simple regression thing) if matrixes of equal size
-	O Make barplots into violin plots
-	O Add gridsearch to change scoring function
-	O make PREDICTEDS VS ACTUALS into a scatter plot for the categorical variable case
+	O Add gridsearch to change scoring function AND test varibles
+	O Plot the Train Test comparison graph AND choose the best model parameters
+	O Add jitter to the compare prediction in the binary case
+	O Add relative importances of DT and RF. (Significance factors)
+	O Plot Lasso Regression variables
+	O Add nlp if there's a longgggg string
+	O Add image processing (with that simple regression thing) if there are matrixes of equal(ish) size
+	X Make barplots into violin plots
+	O Make PREDICTEDS VS ACTUALS into a scatter plot for the categorical variable case
 	O Add coeff bootstrap plot to continuous varible: gets "ValueError: could not broadcast input array from shape (32) into shape (1)" error
-	ensemble the solutions with best LR on some new Train Data.
-	add ability to make train/test split on newer data instead of CV. 
+	O Ensemble the solutions with best LR on some new Train Data.
+	O Add ability to make train/test split on newer data by date instead of CV. 
+	O Add kept lasso regression variables back in (how many do we keep?!) to other datasets
+	O Move to spark
 
 
 

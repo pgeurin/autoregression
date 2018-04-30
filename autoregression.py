@@ -251,10 +251,12 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
     galgraphs.plot_scatter_matrix(df, y_var_name)
     plt.show()
     print(f'MAKE SCATTER TIME: {time.time() - start}')
+    print()
 
 
     print('DF COLUMNS: ')
     print(str(list(df.columns)))
+    print()
     # TRANSFORM DATAFRAME
     df_X = df.drop(y_var_name, axis = 1)
     pipeline = auto_spline_pipeliner(df_X, knots=5)
@@ -264,31 +266,34 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
     y = df[y_var_name]
     df = df_X
     df[y_var_name] = y
-    print('DF COLUMNS AFTER TRANSFORM: '
+    print('DF COLUMNS AFTER TRANSFORM: ')
     print(str(list(df.columns)))
+    print()
 
     # CHOOSE MODELS FOR CONTINUOUS OR CATEGORICAL Y
     names_models = []
     is_continuous = 2 < len(y.unique())
     if is_continuous:
-        print ( 'y variable: "' + y_var_name + '" is continuous' )
+        print ( 'Y VARIABLE: "' + y_var_name + '" IS CONTINUOUS' )
+        print()
         if univariates==True:
             galgraphs.plot_many_univariates(df, y_var_name)
             plt.show()
         names_models.append(('LR', LinearRegression())) # LinearRegression as no ._coeff???!
-        alphas = np.logspace(.0001, 10000, 10)
+        alphas = np.logspace(start=-5, stop=5, num=5)
         # names_models.append(('RR', RidgeCV(alphas=alphas)))
-        # names_models.append(('LASSO', LassoCV(alphas=alphas)))
+        names_models.append(('LASSO', LassoCV(alphas=alphas)))
         # names_models.append(('DT', DecisionTreeRegressor()))
-        # names_models.append(('RF', RandomForestRegressor()))
+        names_models.append(('RF', RandomForestRegressor()))
         # names_models.append(('GB', GradientBoostingRegressor()))
         # names_models.append(('GB', AdaBoostRegressor()))
         # names_models.append(('SVM', SVC()))
         # evaluate each model in turn
         scoring = 'neg_mean_squared_error'
     else:
-        alphas = np.logspace(.0001, 10000, 10)
-        print ( 'y variable: "' + y_var_name + '" is categorical' )
+        alphas = np.logspace(start=-5, stop=5, num=5)
+        print ( 'Y VARIABLE: "' + y_var_name + '" IS CATEGORICAL' )
+        print()
         names_models.append(('LR', LogisticRegression()))
         # names_models.append(('LDA', LinearDiscriminantAnalysis()))
         # names_models.append(('LC', RidgeClassifierCV(alphas=alphas)))
