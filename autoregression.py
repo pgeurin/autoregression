@@ -347,7 +347,7 @@ def auto_regression(df, df_test_X, y_var_name, y_test = [], num_alphas=100, alph
     # galgraphs.plot_many_predicteds_vs_actuals(df, df.columns, y_var_name, y_hat, n_bins=50)
     return (y_hat, rr_optimized, trained_pipeline, y_cv_mean, y_cv_std)
 
-def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, knots=5, partial_dep=True, plot_y_and_y_hat=True, plot_residual=True, univariates=True, bootstraps=10):
+def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, knots=5, bootstrap_coefs=True, partial_dep=True, actual_vs_predicted=True, residual=True, univariates=True, bootstraps=10):
     def timeit(func, *args):
         start = time.time()
         answers = func(args)
@@ -396,7 +396,8 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
     print(f'MAKE SCATTER TIME: {time.time() - start}')
 
 
-    print('df columns: ' + str(list(df.columns)))
+    print('DF COLUMNS: '
+    print(str(list(df.columns)))
     # TRANSFORM DATAFRAME
     df_X = df.drop(y_var_name, axis = 1)
     pipeline = auto_spline_pipeliner(df_X, knots=5)
@@ -406,7 +407,8 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
     y = df[y_var_name]
     df = df_X
     df[y_var_name] = y
-    print('df columns after transform: ' + str(list(df.columns)))
+    print('DF COLUMNS AFTER TRANSFORM: '
+    print(str(list(df.columns)))
 
     # CHOOSE MODELS FOR CONTINUOUS OR CATEGORICAL Y
     names_models = []
@@ -491,7 +493,8 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
 
         print(f'PLOT PREDICTED VS ACTUALS TIME: {time.time() - start}')
         # MAKE BOOTSTRAPS
-        bootstrap_models = bootstrap_train_premade(model, X, y, bootstraps=bootstraps, fit_intercept=False)
+        if bootstrap_coefs or partial_dep:
+            bootstrap_models = bootstrap_train_premade(model, X, y, bootstraps=bootstraps, fit_intercept=False)
 
         #PLOT COEFFICIANTS
 
@@ -508,11 +511,12 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
             print(f'PLOT COEFFICIANTS TIME: {time.time() - start}')
 
             if is_continuous:
-                # PLOT BOOTSTRAP COEFS
-                start = time.time()
-                fig, axs = plot_bootstrap_coefs(bootstrap_models, df_X.columns, n_col=4)
-                fig.tight_layout()
-                plt.show()
+                if bootstrap_coefs:
+                    # PLOT BOOTSTRAP COEFS
+                    start = time.time()
+                    fig, axs = plot_bootstrap_coefs(bootstrap_models, df_X.columns, n_col=4)
+                    fig.tight_layout()
+                    plt.show()
 
                 print(f'PLOT BOOTSTRAP COEFFICIANTS TIME: {time.time() - start}')
 
@@ -532,7 +536,7 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
         if is_continuous:
             if len(y)>0:
                 if len(y) == len(y_hat_sample):
-                    if plot_y_and_y_hat_sample:
+                    if predicteds_vs_actuals:
                         (continuous_features, category_features) = sort_features(df_X_sample)
                         start = time.time()
                         galgraphs.plot_many_predicteds_vs_actuals(df_X_sample, continuous_features, y, y_hat_sample.reshape(-1), n_bins=50)
@@ -542,7 +546,7 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
                         # galgraphs.plot_many_predicteds_vs_actuals(df_X_sample, category_features, y, y_hat_sample.reshape(-1), n_bins=50)
                         # add feature to jitter plot to categorical features
                         # add cdf???
-                    if plot_residuals:
+                    if residuals:
                         start = time.time()
                         fig, ax = plt.subplots()
                         galgraphs.plot_residual_error(ax, df_X_sample.values[:,0].reshape(-1), y.reshape(-1), y_hat_sample.reshape(-1), s=30);
