@@ -16,7 +16,7 @@ from sklearn.model_selection import (KFold, train_test_split, cross_val_score)
 from sklearn.neighbors import KernelDensity
 from sklearn.linear_model import (LinearRegression, Ridge)
 from sklearn.pipeline import Pipeline
-from sklearn.ensemble import GradientBoostingRegressor, GradientBoostingClassifier, RandomForestRegressor, RandomForestClassifier
+from sklearn.ensemble import GradientBoostingRegressor, GradientBoostingClassifier, RandomForestRegressor, RandomForestClassifier, AdaBoostClassifier, AdaBoostRegressor
 from basis_expansions.basis_expansions import (
     Polynomial, LinearSpline, NaturalCubicSpline)
 from regression_tools.plotting_tools import (
@@ -33,7 +33,7 @@ from regression_tools.dftransformers import (
     StandardScaler, Intercept)
 from sklearn import model_selection
 from sklearn.metrics import auc, roc_curve
-from sklearn.linear_model import LogisticRegression, RidgeCV, LassoCV
+from sklearn.linear_model import LogisticRegression, RidgeCV, LassoCV, RidgeClassifierCV
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
@@ -49,9 +49,6 @@ import stringcase
 # Always make it pretty.
 plt.style.use('ggplot')
 
-#my own growing graphing module
-# from galgraphs import simple_spline_specification
-# import galgraphs
 import os
 sys.path.append(os.path.abspath("/Users/macbookpro/Dropbox/Galvanize/autoregression/"))
 import cleandata
@@ -343,15 +340,28 @@ def auto_regression(df, df_test_X, y_var_name, y_test = [], num_alphas=100, alph
     # galgraphs.plot_many_predicteds_vs_actuals(df, df.columns, y_var_name, y_hat, n_bins=50)
     return (y_hat, rr_optimized, trained_pipeline, y_cv_mean, y_cv_std)
 
-def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, knots=5, univariates=True, bootstraps=50):
-    plt.show()
+def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, knots=5, partial_dep=True, univariates=True, bootstraps=10):
+    def timeit(func, *args):
+        start = time.time()
+        answers = func(args)
+
+        print(f'{str(func.__name__).upper()} TIME: {time.time() - start}')
+        return answers
+    df = cleandata.rename_columns(df)
+    y_var_name = stringcase.snakecase(y_var_name).replace('__','_')
+    start = time.time()
     if percent_data == None:
         while len(df)>1000:
             print(f"'percent_data' NOT SPECIFIED AND len(df)=({len(df)}) IS > 1000: TAKING A RANDOM %10 OF THE SAMPLE")
             df = df.sample(frac=.1)
     else:
         df = df.sample(frac=percent_data)
+    print(f'MAKE SUBSAMPLE TIME: {time.time() - start}')
+
+    start = time.time()
     df = cleandata.clean_df(df, y_var_name)
+    print(f'CLEAN_DF TIME: {time.time()-start}')
+
     # REMEMBER OLD DATAFRAME
     df_unpiped = df.copy()
     columns_unpiped = df.columns
@@ -369,15 +379,13 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
     start = time.time()
     plt.matshow(df.sample(sample_limit).corr())
     plt.show()
-    stop = time.time()
-    print (f'PLOT CORRELATION TIME: {stop-start}')
+    print(f'PLOT CORRELATION TIME: {time.time() - start}')
 
     # MAKE SCATTER MATRIX
     start = time.time()
     galgraphs.plot_scatter_matrix(df, y_var_name)
     plt.show()
-    stop = time.time()
-    print (f'MAKE SCATTER TIME: {stop-start}')
+    print(f'MAKE SCATTER TIME: {time.time() - start}')
 
 
     print('df columns: ' + str(list(df.columns)))
@@ -416,7 +424,7 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
         print ( 'y variable: "' + y_var_name + '" is categorical' )
         names_models.append(('LR', LogisticRegression()))
         # names_models.append(('LDA', LinearDiscriminantAnalysis()))
-        names_models.append(('LC', RidgeClassifierCV(alphas=alpha_range)))
+        # names_models.append(('LC', RidgeClassifierCV(alphas=alphas)))
         # names_models.append(('KNN', KNeighborsClassifier()))
         names_models.append(('DT', DecisionTreeClassifier()))
         # names_models.append(('NB', GaussianNB()))
@@ -445,8 +453,8 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
         msg = "%s: mean=%f std=%f" % (name, cv_results.mean(), cv_results.std())
         print(msg)
         plt.show()
-        stop = time.time()
-        print (f'GET CV RESULTS: {stop-start}')
+
+        print (f'GET CV RESULTS: {time.time()-start}')
 
         # #OTHER CROSS VALIDATE METHOD:
         # ridge_regularization_strengths = np.logspace(np.log10(0.000001), np.log10(100000000), num=100)
@@ -472,8 +480,8 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
         if is_continuous:
             galgraphs.plot_predicted_vs_actuals(df, model, y_var_name, sample_limit)
             plt.show()
-        stop = time.time()
-        print(f'PLOT PREDICTED VS ACTUALS TIME: {stop-start}')
+
+        print(f'PLOT PREDICTED VS ACTUALS TIME: {time.time() - start}')
         # MAKE BOOTSTRAPS
         bootstrap_models = bootstrap_train_premade(model, X, y, bootstraps=bootstraps, fit_intercept=False)
 
@@ -488,8 +496,8 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
                 coefs = list(coefs[0])
             galgraphs.plot_coefs(coefs=coefs, columns=columns, graph_name=name)
             plt.show()
-            stop = time.time()
-            print(f'PLOT COEFFICIANTS TIME: {stop-start}')
+
+            print(f'PLOT COEFFICIANTS TIME: {time.time() - start}')
 
             if is_continuous:
                 # PLOT BOOTSTRAP COEFS
@@ -497,17 +505,17 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
                 fig, axs = plot_bootstrap_coefs(bootstrap_models, df_X.columns, n_col=4)
                 fig.tight_layout()
                 plt.show()
-                stop = time.time()
-                print(f'PLOT BOOTSTRAP COEFFICIANTS TIME: {stop-start}')
+
+                print(f'PLOT BOOTSTRAP COEFFICIANTS TIME: {time.time() - start}')
 
         # PLOT PARTIAL DEPENDENCIES
-        start = time.time()
-        plot_partial_dependences(model, X=df_unpiped.drop(y_var_name, axis=1), var_names=columns_unpiped, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
-        plt.show()
-        # galgraphs.shaped_plot_partial_dependences(model, df, y_var_name)
-        # plt.show()
-        stop = time.time()
-        print(f'PLOT PARTIAL DEPENDENCIES TIME: {stop-start}')
+        if partial_dep:
+            start = time.time()
+            plot_partial_dependences(model, X=df_unpiped.drop(y_var_name, axis=1), var_names=columns_unpiped, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
+            plt.show()
+            # galgraphs.shaped_plot_partial_dependences(model, df, y_var_name)
+            # plt.show()
+            print(f'PLOT PARTIAL DEPENDENCIES TIME: {time.time() - start}')
 
         # PLOT PREDICTED VS ACTUALS
         df_X = df.drop(y_var_name, axis=1)
@@ -519,8 +527,8 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
                     start = time.time()
                     galgraphs.plot_many_predicteds_vs_actuals(df_X, continuous_features, y, y_hat.reshape(-1), n_bins=50)
                     plt.show()
-                    stop = time.time()
-                    print(f'PLOT PREDICTEDS_VS_ACTUALS TIME: {stop-start}')
+
+                    print(f'PLOT PREDICTEDS_VS_ACTUALS TIME: {time.time() - start}')
                     # galgraphs.plot_many_predicteds_vs_actuals(df_X, category_features, y, y_hat.reshape(-1), n_bins=50)
                     # add feature to jitter plot to categorical features
                     # add cdf???
@@ -528,8 +536,8 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
                     fig, ax = plt.subplots()
                     galgraphs.plot_residual_error(ax, df_X.values[:,0].reshape(-1), y.reshape(-1), y_hat.reshape(-1), s=30);
                     plt.show()
-                    stop = time.time()
-                    print(f'PLOT RESIDUAL ERROR TIME: {stop-start}')
+
+                    print(f'PLOT RESIDUAL ERROR TIME: {time.time() - start}')
                     print(f'{name}: MSE = {np.mean((y_hat-y)**2)}')
                 else:
                     print ('len(y) != len(y_hat), so no regpressions included' )
@@ -546,16 +554,15 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
     else:
         galgraphs.plot_box_and_violins(names, scoring, results)
     plt.show()
-    stop = time.time()
-    print(f'PLOT BAR AND VIOLIN TIME: {stop-start}')
+    print(f'PLOT BAR AND VIOLIN TIME: {time.time() - start}')
     # ROC CURVE
     # print(f'categorical? {str(!is_continuous)}')
     if not is_continuous:
         start = time.time()
         galgraphs.plot_rocs(models, df_X, y)
         plt.show()
-        stop = time.time()
-        print(f'PLOT BAR AND VIOLIN TIME: {stop-start}')
+
+        print(f'PLOT BAR AND VIOLIN TIME: {time.time() - start}')
     return names, results, models, pipeline
 
 def make_one_ridge(df_X_train, y_train, X_test, alpha):
