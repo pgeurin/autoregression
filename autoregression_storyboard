@@ -8,29 +8,30 @@ TODO:
 	X remove empty univariate graphs, empty bc of the 2 variable case 
 	X (detect number of cont varables ahead of time)
 	X some error in the partial depednecy plot
-	offer a random samling of the data
-	for categorical variables make PREDICTEDS VS ACTUALS a CMF plot comparison or A ROC curve
+	X offer a random samling of the data
+	X? for categorical variables make PREDICTEDS VS ACTUALS A ROC curve
 	make alpha relative to number of rows
-	put cleandata.py, and galgraphs.py in autoregression
+	O put cleandata.py, and galgraphs.py in autoregression
 	X toggle univariate
 	X turn off univariate plot for binary cases
-	Add relative importances of DT and RF.
+	O Add relative importances of DT and RF.
 	X take the log of the bar graph errors
-	add jitter to the compare prediction in the binary case
+	O Add jitter to the compare prediction in the binary case
 	X Add bootstrap to 'shaped_plot_partial_dependences' a-la 'plot_partial_dependences'
 	X add boosting
 	X Plot residuals
-	Decide if categorical column (non int or float) has too many categories, then drop column.
-	Add other method plottings: (Significance factors)
-	Plot Lasso Regression variables
-	add kept lasso regression variables back in (how many do we keep?!) to other datasets
-	Add 'take 10% sample first' and maybe even 1%
-	add nlp if longgggg string
-	add image processing (with that simple regression thing) if matrixes of equal size
-	Make barplots into violin plots
-	Add gridsearch to change scoring function
-
-
+	X Decide if categorical column (non int or float) has too many categories, then drop column.
+	Orefactor graphing tools
+	O Add other method plottings: (Significance factors)
+	O Plot Lasso Regression variables
+	O add kept lasso regression variables back in (how many do we keep?!) to other datasets
+	X Add 'take 10% sample first' and maybe even 1%
+	O add nlp if longgggg string
+	O add image processing (with that simple regression thing) if matrixes of equal size
+	O Make barplots into violin plots
+	O Add gridsearch to change scoring function
+	O make PREDICTEDS VS ACTUALS into a scatter plot for the categorical variable case
+	O Add coeff bootstrap plot to continuous varible: gets "ValueError: could not broadcast input array from shape (32) into shape (1)" error
 	------
 	X Add ability to clean data!
 	X Test current regression against simple linear case
