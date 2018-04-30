@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -32,7 +33,7 @@ from regression_tools.plotting_tools import (
                                 plot_partial_depenence,
                                 plot_partial_dependences,
                                 predicteds_vs_actuals)
-import sys 
+import sys
 import os
 sys.path.append(os.path.abspath("/Users/macbookpro/Dropbox/Galvanize/autoregression/"))
 import autoregression
@@ -188,7 +189,7 @@ def plot_many_predicteds_vs_actuals(df_X, x_var_names, df_y, y_hat, n_bins=50):
     """
     num_plot_rows = int(np.ceil(len(x_var_names)/2.0))
     fig, axs = plt.subplots(num_plot_rows, 2, figsize=(12, 3 * num_plot_rows))
-    for ax, name in zip(axs.flatten(), x_var_names): 
+    for ax, name in zip(axs.flatten(), x_var_names):
         x = df_X[name]
         predicteds_vs_actuals(ax, x, df_y, y_hat)
         ax.set_title("{} Predicteds vs. Actuals".format(name))
@@ -363,28 +364,28 @@ def shaped_plot_partial_dependences(model, df, y_var_name, pipeline=None, n_poin
         fig, axs = plt.subplots(num_plot_rows, 2, figsize=(14, 3 * num_plot_rows) )
         for i, X_feature in enumerate(X_features):
             # print(model)
-            plot_partial_depenence(axs.flatten()[i], 
-                                   model=model, 
-                                   X=df.drop(y_var_name,axis=1), 
+            plot_partial_depenence(axs.flatten()[i],
+                                   model=model,
+                                   X=df.drop(y_var_name,axis=1),
                                    var_name=X_feature,
-                                   y=df[y_var_name], 
-                                   pipeline=pipeline, 
-                                   n_points=n_points, 
+                                   y=df[y_var_name],
+                                   pipeline=pipeline,
+                                   n_points=n_points,
                                    **kwargs)
-            axs.flatten()[i].set_title("{}: Partial Dependence Plot {}".format(X_feature, 
+            axs.flatten()[i].set_title("{}: Partial Dependence Plot {}".format(X_feature,
                                                                   model.__class__.__name__))
     elif len(X_features) == 1:
         fig, axs = plt.subplots(len(X_features),1, figsize = (14,4.5*len(X_features)))
         for i, X_feature in enumerate(X_features):
-            plot_partial_depenence(axs, 
-                                   model=model, 
-                                   X=df.drop(y_var_name,axis=1), 
+            plot_partial_depenence(axs,
+                                   model=model,
+                                   X=df.drop(y_var_name,axis=1),
                                    var_name=X_feature,
-                                   y=df[y_var_name], 
-                                   pipeline=pipeline, 
-                                   n_points=n_points, 
+                                   y=df[y_var_name],
+                                   pipeline=pipeline,
+                                   n_points=n_points,
                                    **kwargs)
-            axs.set_title("{}: Partial Dependence Plots {}".format(X_feature, 
+            axs.set_title("{}: Partial Dependence Plots {}".format(X_feature,
                                                                   model.__class__.__name__))
             fig.set_title( "Partial Dependence Plots for " + model.__class__.__name__)
 #             fig.set_tight_layout(tight = True) #this doesn't work!!!
@@ -392,7 +393,7 @@ def shaped_plot_partial_dependences(model, df, y_var_name, pipeline=None, n_poin
     else:
         print( 'No Features to Plot')
 
-def plot_partial_dependences(model, X, var_names, 
+def plot_partial_dependences(model, X, var_names,
                              y=None, bootstrap_models=None, pipeline=None,
                              n_points=250):
     """Convenience function for creating many partial dependency plots."""
@@ -402,7 +403,7 @@ def plot_partial_dependences(model, X, var_names,
             for M in bootstrap_models[:100]:
                 print(M)
                 plot_partial_depenence(
-                    ax, M, X=X, var_name=name, pipeline=pipeline, alpha=0.8, 
+                    ax, M, X=X, var_name=name, pipeline=pipeline, alpha=0.8,
                     linewidth=1, color="lightblue")
         print(model)
         plot_partial_depenence(ax, model, X=X, var_name=name, y=y,
@@ -435,3 +436,68 @@ def plot_rocs(models, df_X, y, pipeline=None):
     for model in models:
         # pipeline intentionally tranformed before inserting df_X, pipeline should not be passed!
         plot_roc(ax, model, df_X, y, pipeline=None)
+
+def plot_box_and_violins(names, scoring, results):
+    fig, ax = plt.subplots(2,2, figsize=(20,20))
+    ax = ax.flatten()
+    fig.suptitle(f'Model Crossval Scores: {scoring}')
+    ax[0].set_ylabel(f'{scoring}')
+
+    # BOX PLOTS
+    ax[0].boxplot(results, vert=False)
+    ax[0].set_yticklabels(names)
+
+    # VIOLIN PLOTS
+    ax[1].violinplot(results, vert=False)
+    ax[1].set_yticklabels(names)
+
+    #BOX PLOTS OF -LOG(ERROR)
+    ax[2].boxplot(results, vert=False)
+    ax[2].set_yticklabels(names)
+    ax[2].set_xlabel(f'{scoring}')
+    ax[2].set_xscale('log')
+    ax[2].get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+
+    #VIOLIN PLOTS OF -LOG(ERROR)
+    ax[3].violinplot(results, vert=False)
+    ax[3].set_yticklabels(names)
+    ax[3].set_xlabel(f'-{scoring}')
+    ax[3].set_xscale('log')
+    ax[3].get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+
+def rss(model, X, y):
+    preds = model.predict(X)
+    n = X.shape[0]
+    return np.sum((y - preds)**2) / n
+
+def train_and_test_error(regressions, X_train, y_train, X_test, y_test):
+    alphas = [ridge.alpha for ridge in regressions]
+    train_scores = [rss(reg, X_train, y_train) for reg in regressions]
+    test_scores = [rss(reg, X_test, y_test) for reg in regressions]
+    return pd.DataFrame({
+        'train_scores': train_scores,
+        'test_scores': test_scores,
+    }, index=alphas)
+
+def get_optimal_alpha(train_and_test_errors):
+    test_errors = train_and_test_errors["test_scores"]
+    optimal_idx = np.argmin(test_errors.values)
+    return train_and_test_errors.index[optimal_idx]
+
+def plot_train_and_test_error(ax, train_and_test_errors, alpha=1.0, linewidth=2, legend=True):
+    alphas = train_and_test_errors.index
+    optimal_alpha = get_optimal_alpha(train_and_test_errors)
+    ax.plot(np.log10(alphas), train_and_test_errors.train_scores, label="Train MSE",
+            color="blue", linewidth=linewidth, alpha=alpha)
+    ax.plot(np.log10(alphas), train_and_test_errors.test_scores, label="Test MSE",
+            color="red", linewidth=linewidth, alpha=alpha)
+    ax.axvline(x=np.log10(optimal_alpha), color="grey", alpha=alpha)
+    ax.set_xlabel(r"$\log_{10}(\alpha)$")
+    ax.set_ylabel("Mean Squared Error")
+    ax.set_title("Mean Squared Error vs. Regularization Strength")
+    if legend:
+        ax.legend()
+
+def plot_train_and_test_error()
+    train_and_test_errors = train_and_test_error(
+    ridge_regressions, balance_train, y_train, balance_test, y_test)

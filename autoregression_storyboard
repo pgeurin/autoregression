@@ -32,6 +32,11 @@ TODO:
 	O Add gridsearch to change scoring function
 	O make PREDICTEDS VS ACTUALS into a scatter plot for the categorical variable case
 	O Add coeff bootstrap plot to continuous varible: gets "ValueError: could not broadcast input array from shape (32) into shape (1)" error
+	ensemble the solutions with best LR on some new Train Data.
+	add ability to make train/test split on newer data instead of CV. 
+
+
+
 	------
 	X Add ability to clean data!
 	X Test current regression against simple linear case

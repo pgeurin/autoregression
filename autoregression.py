@@ -535,44 +535,15 @@ def compare_predictions(df, y_var_name, percent_data=None, possible_categories=1
             else:
                 print( 'No y, so no regressions included')
 
-
-    def plot_box_and_violin(names, scoring, results):
-        fig, ax = plt.subplots(2,2, figsize=(20,20))
-        ax = ax.flatten()
-        fig.suptitle(f'Model Crossval Scores: {scoring}')
-        ax[0].set_ylabel(f'{scoring}')
-
-        # BOX PLOTS
-        ax[0].boxplot(results, vert=False)
-        ax[0].set_yticklabels(names)
-
-        # VIOLIN PLOTS
-        ax[1].violinplot(results, vert=False)
-        ax[1].set_yticklabels(names)
-
-        #BOX PLOTS OF -LOG(ERROR)
-        ax[2].boxplot(results, vert=False)
-        ax[2].set_yticklabels(names)
-        ax[2].set_xlabel(f'{scoring}')
-        ax[2].set_xscale('log')
-        ax[2].get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-
-        #VIOLIN PLOTS OF -LOG(ERROR)
-        ax[3].violinplot(results, vert=False)
-        ax[3].set_yticklabels(names)
-        ax[3].set_xlabel(f'-{scoring}')
-        ax[3].set_xscale('log')
-        ax[3].get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-
     # --COMPARE MODELS--
     start = time.time()
     if is_continuous:
         negresults = []
         for i, result in enumerate(results):
             negresults.append(-1*result)
-        plot_box_and_violin(names, scoring, negresults)
+        galgraphs.plot_box_and_violins(names, scoring, negresults)
     else:
-        plot_box_and_violin(names, scoring, results)
+        galgraphs.plot_box_and_violins(names, scoring, results)
     plt.show()
     stop = time.time()
     print(f'PLOT BAR AND VIOLIN TIME: {stop-start}')
