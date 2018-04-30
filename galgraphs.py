@@ -107,6 +107,22 @@ def one_dim_scatterplot(ax, data, jitter=0.2, **options):
     ax.yaxis.set_ticklabels([])
     ax.set_ylim([-1, 1])
 
+def plot_scatter_matrix(df, y_var_name):
+    (continuous_features, category_features) = autoregression.sort_features(df.drop(y_var_name, axis=1))
+    if len(df) < 300:
+        sample_limit = len(df)
+    else:
+        sample_limit = 300
+    if y_var_name in continuous_features:
+        continuous_features.remove(y_var_name)
+    while 5 < len(continuous_features):
+        plot_sample_df = df[[y_var_name] + continuous_features[:6]].sample(n=sample_limit)
+        pd.scatter_matrix(plot_sample_df, figsize=(len(plot_sample_df)*.07,len(plot_sample_df)*.07))
+        plt.show()
+        continuous_features = continuous_features[5:]
+    plot_sample_df = df[[y_var_name] + continuous_features].sample(n=sample_limit)
+    pd.scatter_matrix(plot_sample_df, figsize=(len(plot_sample_df)*.1,len(plot_sample_df)*.1))
+
 def plot_one_univariate(ax, dataframe, x_var_name, y_var_name, mask=None):
     """ A linear spline regression of two columns in the dataframe. of string 'y_var' across the named string 'xvar' in the dataframe var_name on matplotlib axis 'ax'
     INPUT:
@@ -173,7 +189,7 @@ def plot_many_univariates(df, y_var_name):
     else:
         print( 'No Continous Features to Plot')
 
-def plot_predicted_vs_actuals(df, model, X, name, y_var_name, sample_limit):
+def plot_predicted_vs_actuals(df, model, y_var_name, sample_limit):
     X = df.drop(y_var_name, axis=1).values
     name = model.__class__.__name__
     plot_sample_df = df.sample(sample_limit)

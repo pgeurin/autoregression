@@ -360,11 +360,14 @@ def compare_predictions(df, y_var_name, percent_data=None, possible_categories=1
     columns_unpiped.remove(y_var_name)
 
     # REMOVE CATEGORICAL VARIABLES THAT HAVE TOO MANY CATEGORIES TO BE USEFUL
-    (continuous_features, category_features) = sort_features(df.drop(y_var_name, axis=1))
-    for cat in category_features:
-        if len(df[cat].unique())>possible_categories:
-            df.drop(cat, axis=1)
-            print('Too many unique values in categorical feature "' + cat + '", dropping "' + cat + '"')
+    def remove_diverse_categories(df, y_var_name):
+        (continuous_features, category_features) = sort_features(df.drop(y_var_name, axis=1))
+        for cat in category_features:
+            if len(df[cat].unique())>possible_categories:
+                df.drop(cat, axis=1)
+                print('Too many unique values in categorical feature "' + cat + '", dropping "' + cat + '"')
+        return df
+    df = remove_diverse_categories(df, y_var_name)
 
     if len(df) < 300:
         sample_limit = len(df)
@@ -379,19 +382,7 @@ def compare_predictions(df, y_var_name, percent_data=None, possible_categories=1
 
     # MAKE SCATTER MATRIX
     start = time.time()
-    if len(df) < 300:
-        sample_limit = len(df)
-    else:
-        sample_limit = 300
-    if y_var_name in continuous_features:
-        continuous_features.remove(y_var_name)
-    while 5 < len(continuous_features):
-        plot_sample_df = df[[y_var_name] + continuous_features[:6]].sample(n=sample_limit)
-        pd.scatter_matrix(plot_sample_df, figsize=(len(plot_sample_df)*.07,len(plot_sample_df)*.07))
-        plt.show()
-        continuous_features = continuous_features[5:]
-    plot_sample_df = df[[y_var_name] + continuous_features].sample(n=sample_limit)
-    pd.scatter_matrix(plot_sample_df, figsize=(len(plot_sample_df)*.1,len(plot_sample_df)*.1))
+    galgraphs.plot_scatter_matrix(df, y_var_name)
     plt.show()
     stop = time.time()
     print (f'MAKE SCATTER TIME: {stop-start}')
