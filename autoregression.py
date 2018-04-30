@@ -53,10 +53,10 @@ plt.style.use('ggplot')
 # from galgraphs import simple_spline_specification
 # import galgraphs
 import os
-sys.path.append(os.path.abspath("/Users/macbookpro/Dropbox/Galvanize/cleandata/"))
+sys.path.append(os.path.abspath("/Users/macbookpro/Dropbox/Galvanize/autoregression/"))
 import cleandata
 import importlib.util
-spec = importlib.util.spec_from_file_location("galgraphs", "/Users/macbookpro/Dropbox/Galvanize/galgraphs/galgraphs/galgraphs.py")
+spec = importlib.util.spec_from_file_location("galgraphs", "/Users/macbookpro/Dropbox/Galvanize/autoregression/galgraphs.py")
 galgraphs = importlib.util.module_from_spec(spec)
 import galgraphs
 import tqdm
@@ -219,7 +219,7 @@ def make_k_folds_ridge(df, y_var_name, pipeliner=auto_spline_pipeliner, knots = 
     for train_idxs, test_idxs in tqdm.tqdm(splitter.split(df_X), total=n_folds):
         # Split the raw data into train and test
         train_raw_X, test_raw_X,  train_raw_y, test_raw_y  = df_X.iloc[train_idxs], df_X.iloc[test_idxs], df[y_var_name].iloc[train_idxs], df[y_var_name].iloc[test_idxs]
-        train_raw, test_raw = df.iloc[train_idxs], df.iloc[test_idxs], 
+        train_raw, test_raw = df.iloc[train_idxs], df.iloc[test_idxs],
         # Fit and transform the raw data.
 
         # All training of the transformers must only touch the training data!
@@ -264,7 +264,7 @@ def make_k_folds_ridge(df, y_var_name, pipeliner=auto_spline_pipeliner, knots = 
             'train_scores': mean_train_errors,
             'test_scores': mean_test_errors,
         }, index=ridge_regularization_strengths)
-    
+
     # print (f'test_raw_y = {test_raw_y}')
     # print (f'y_train_cv = {y_train_cv}')
     fig, ax = plt.subplots(figsize=(16, 4))
@@ -309,14 +309,14 @@ def auto_regression(df, df_test_X, y_var_name, y_test = [], num_alphas=100, alph
     # apply pipeline to test data
     df_test_X = cleandata.clean_df_X(df_test_X)
     df_test_X_added_features = trained_pipeline.transform(df_test_X)
-    
+
     #find y_hat
     y_hat = (rr_optimized.predict(df_test_X_added_features) * y_cv_std + y_cv_mean)
     y_hat = make_linear_regression(df, y_var_name, df_test_X)
 
     #plot coeffs
     galgraphs.plot_coefs(rr_optimized.coef_[0], df_test_X_added_features.columns)
-    
+
     #plot partial dependencies
     # plot_partial_dependences()
 
@@ -330,7 +330,7 @@ def auto_regression(df, df_test_X, y_var_name, y_test = [], num_alphas=100, alph
             print(f'MSE = {np.mean((y_hat-y_test)**2)}')
         else:
             print ('len(y_test) != len(y_hat), so no regpressions included' )
-    else: 
+    else:
         print( 'No y_test, so no regressions included')
     # (continuous_features, category_features) = sort_features(df)
     # i_s = int(len(continuous_features) / 3)
@@ -340,12 +340,12 @@ def auto_regression(df, df_test_X, y_var_name, y_test = [], num_alphas=100, alph
     #         ax.scatter(df.loc[i], df.loc[j], color="grey")
     #         ax.set_xlabel(df.columns[i])
     #         ax.set_ylabel(df.columns[j])
-    
+
     # galgraphs.plot_many_predicteds_vs_actuals(df, df.columns, y_var_name, y_hat, n_bins=50)
     return (y_hat, rr_optimized, trained_pipeline, y_cv_mean, y_cv_std)
 
 def compare_predictions(df, y_var_name, percent_data=None, possible_categories=11, knots=5, univariates=True, bootstraps=50):
-    
+    plt.show()
     if percent_data == None:
         while len(df)>1000:
             print(f"'percent_data' NOT SPECIFIED AND len(df)=({len(df)}) IS > 1000: TAKING A RANDOM %10 OF THE SAMPLE")
@@ -366,25 +366,36 @@ def compare_predictions(df, y_var_name, percent_data=None, possible_categories=1
             df.drop(cat, axis=1)
             print('Too many unique values in categorical feature "' + cat + '", dropping "' + cat + '"')
 
+    if len(df) < 300:
+        sample_limit = len(df)
+    else:
+        sample_limit = 300
     # SHOW CORRELATION MATRIX
-    plt.matshow(df.corr())
+    start = time.time()
+    plt.matshow(df.sample(sample_limit).corr())
     plt.show()
+    stop = time.time()
+    print (f'PLOT CORRELATION TIME: {stop-start}')
 
     # MAKE SCATTER MATRIX
-    # KEEP ME: FIX BOOLEAN CASE BEFORE DELETING:
+    start = time.time()
     if len(df) < 300:
         sample_limit = len(df)
     else:
         sample_limit = 300
     if y_var_name in continuous_features:
-        continuous_features.remove(y_va r_name)
+        continuous_features.remove(y_var_name)
     while 5 < len(continuous_features):
         plot_sample_df = df[[y_var_name] + continuous_features[:6]].sample(n=sample_limit)
         pd.scatter_matrix(plot_sample_df, figsize=(len(plot_sample_df)*.07,len(plot_sample_df)*.07))
+        plt.show()
         continuous_features = continuous_features[5:]
     plot_sample_df = df[[y_var_name] + continuous_features].sample(n=sample_limit)
     pd.scatter_matrix(plot_sample_df, figsize=(len(plot_sample_df)*.1,len(plot_sample_df)*.1))
     plt.show()
+    stop = time.time()
+    print (f'MAKE SCATTER TIME: {stop-start}')
+
 
     print('df columns: ' + str(list(df.columns)))
     # TRANSFORM DATAFRAME
@@ -392,7 +403,7 @@ def compare_predictions(df, y_var_name, percent_data=None, possible_categories=1
     pipeline = auto_spline_pipeliner(df_X, knots=5)
     pipeline.fit(df_X)
     df_X = pipeline.transform(df_X)
-    X = df_X.values   
+    X = df_X.values
     y = df[y_var_name]
     df = df_X
     df[y_var_name] = y
@@ -407,8 +418,8 @@ def compare_predictions(df, y_var_name, percent_data=None, possible_categories=1
             galgraphs.plot_many_univariates(df, y_var_name)
             plt.show()
         names_models.append(('LR', LinearRegression())) # LinearRegression as no ._coeff???!
-        alpha_range = np.linspace(.0001, 10000,10)
-        names_models.append(('RR', RidgeCV(alphas=alpha_range)))
+        alpha_range = np.logspace(.0001, 10000, 10)
+        # names_models.append(('RR', RidgeCV(alphas=alpha_range)))
         # names_models.append(('LASSO', LassoCV()))
         # names_models.append(('DT', DecisionTreeRegressor()))
         # names_models.append(('RF', RandomForestRegressor()))
@@ -416,7 +427,7 @@ def compare_predictions(df, y_var_name, percent_data=None, possible_categories=1
         # names_models.append(('SVM', SVC()))
         # evaluate each model in turn
         scoring = 'neg_mean_squared_error'
-    else: 
+    else:
         print ( 'y variable: "' + y_var_name + '" is categorical' )
         names_models.append(('LR', LogisticRegression()))
         # names_models.append(('LDA', LinearDiscriminantAnalysis()))
@@ -452,18 +463,23 @@ def compare_predictions(df, y_var_name, percent_data=None, possible_categories=1
         fit_models.append(model)
 
         # PLOT PREDICTED VS ACTUALS
-        plot_sample_df = df.sample(sample_limit)
-        fig, ax = plt.subplots(figsize=(12, 4))
-        ax.set_title(name + " Predicteds vs Actuals at " + df.drop(y_var_name, axis = 1).columns[0])
-        ax.scatter(df[df.drop(y_var_name, axis = 1).columns[0]], df[y_var_name], color="grey", alpha=0.5)
-        ax.scatter(df[df.drop(y_var_name, axis = 1).columns[0]], model.predict(X))
-        plt.show()
-
+        start = time.time()
+        if is_continuous:
+            plot_sample_df = df.sample(sample_limit)
+            fig, ax = plt.subplots(figsize=(12, 4))
+            ax.set_title(name + " Predicteds vs Actuals at " + df.drop(y_var_name, axis = 1).columns[0])
+            ax.scatter(df[df.drop(y_var_name, axis = 1).columns[0]], df[y_var_name], color="grey", alpha=0.5)
+            ax.scatter(df[df.drop(y_var_name, axis = 1).columns[0]], model.predict(X))
+            plt.show()
+        stop = time.time()
+        print(f'PLOT PREDICTED VS ACTUALS TIME: {stop-start}')
         # MAKE BOOTSTRAPS
         bootstrap_models = bootstrap_train_premade(model, X, y, bootstraps=bootstraps, fit_intercept=False)
 
         #PLOT COEFFICIANTS
+
         if "coef_" in dir(model):
+            start = time.time()
             coefs = model.coef_
             columns=list(df.columns)
             columns.remove(y_var_name)
@@ -471,71 +487,103 @@ def compare_predictions(df, y_var_name, percent_data=None, possible_categories=1
                 coefs = list(coefs[0])
             galgraphs.plot_coefs(coefs=coefs, columns=columns, graph_name=name)
             plt.show()
+            stop = time.time()
+            print(f'PLOT COEFFICIANTS TIME: {stop-start}')
 
-            # PLOT BOOTSTRAP COEFS
-            # fig, axs = plot_bootstrap_coefs(bootstrap_models, df_X.columns, n_col=4)
-            # fig.tight_layout()
-            # plt.show()
-        
+            if is_continuous:
+                # PLOT BOOTSTRAP COEFS
+                start = time.time()
+                fig, axs = plot_bootstrap_coefs(bootstrap_models, df_X.columns, n_col=4)
+                fig.tight_layout()
+                plt.show()
+                stop = time.time()
+                print(f'PLOT BOOTSTRAP COEFFICIANTS TIME: {stop-start}')
+
         # PLOT PARTIAL DEPENDENCIES
+        start = time.time()
         plot_partial_dependences(model, X=df_unpiped.drop(y_var_name, axis=1), var_names=columns_unpiped, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
         plt.show()
         # galgraphs.shaped_plot_partial_dependences(model, df, y_var_name)
         # plt.show()
+        stop = time.time()
+        print(f'PLOT PARTIAL DEPENDENCIES TIME: {stop-start}')
 
         # PLOT PREDICTED VS ACTUALS
         df_X = df.drop(y_var_name, axis=1)
         y_hat = model.predict(df_X)
-        if len(y)>0:
-            if len(y) == len(y_hat):
-                if is_continuous:
+        if is_continuous:
+            if len(y)>0:
+                if len(y) == len(y_hat):
                     (continuous_features, category_features) = sort_features(df_X)
+                    start = time.time()
                     galgraphs.plot_many_predicteds_vs_actuals(df_X, continuous_features, y, y_hat.reshape(-1), n_bins=50)
-                # galgraphs.plot_many_predicteds_vs_actuals(df_X, category_features, y, y_hat.reshape(-1), n_bins=50)
-                # add feature to jitter plot to categorical features
-                # add cdf???
-                fig, ax = plt.subplots()
-                galgraphs.plot_residual_error(ax, df_X.values[:,0].reshape(-1), y.reshape(-1), y_hat.reshape(-1), s=30);
-                print(f'{name}: MSE = {np.mean((y_hat-y)**2)}')
+                    plt.show()
+                    stop = time.time()
+                    print(f'PLOT PREDICTEDS_VS_ACTUALS TIME: {stop-start}')
+                    # galgraphs.plot_many_predicteds_vs_actuals(df_X, category_features, y, y_hat.reshape(-1), n_bins=50)
+                    # add feature to jitter plot to categorical features
+                    # add cdf???
+                    start = time.time()
+                    fig, ax = plt.subplots()
+                    galgraphs.plot_residual_error(ax, df_X.values[:,0].reshape(-1), y.reshape(-1), y_hat.reshape(-1), s=30);
+                    plt.show()
+                    stop = time.time()
+                    print(f'PLOT RESIDUAL ERROR TIME: {stop-start}')
+                    print(f'{name}: MSE = {np.mean((y_hat-y)**2)}')
+                else:
+                    print ('len(y) != len(y_hat), so no regpressions included' )
             else:
-                print ('len(y) != len(y_hat), so no regpressions included' )
-        else: 
-            print( 'No y, so no regressions included')
-    
+                print( 'No y, so no regressions included')
+
+
+    def plot_box_and_violin(names, scoring, results):
+        fig, ax = plt.subplots(2,2, figsize=(20,20))
+        ax = ax.flatten()
+        fig.suptitle(f'Model Crossval Scores: {scoring}')
+        ax[0].set_ylabel(f'{scoring}')
+
+        # BOX PLOTS
+        ax[0].boxplot(results, vert=False)
+        ax[0].set_yticklabels(names)
+
+        # VIOLIN PLOTS
+        ax[1].violinplot(results, vert=False)
+        ax[1].set_yticklabels(names)
+
+        #BOX PLOTS OF -LOG(ERROR)
+        ax[2].boxplot(results, vert=False)
+        ax[2].set_yticklabels(names)
+        ax[2].set_xlabel(f'{scoring}')
+        ax[2].set_xscale('log')
+        ax[2].get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+
+        #VIOLIN PLOTS OF -LOG(ERROR)
+        ax[3].violinplot(results, vert=False)
+        ax[3].set_yticklabels(names)
+        ax[3].set_xlabel(f'-{scoring}')
+        ax[3].set_xscale('log')
+        ax[3].get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+
     # --COMPARE MODELS--
-    fig, ax = plt.subplots(2,2, figsize=(20,20))
-    ax = ax.flatten()
-    fig.suptitle(f'Model Crossval Scores: {scoring}')
-    ax[0].set_ylabel(f'{scoring}')
-
-    # BOX PLOTS
-    ax[0].boxplot(results, vert=False)
-    ax[0].set_yticklabels(names)
-
-    # VIOLIN PLOTS
-    ax[1].violinplot(results, vert=False)
-    ax[1].set_yticklabels(names)
-    
-    #BOX PLOTS OF -LOG(ERROR)
-    ax[2].boxplot(results, vert=False)
-    ax[2].set_yticklabels(names)
-    ax[2].set_xlabel(f'{scoring}')
-    ax[2].set_xscale('log')
-    ax[2].get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-
-    #VIOLIN PLOTS OF -LOG(ERROR)
-    ax[3].violinplot(results, vert=False)
-    ax[3].set_yticklabels(names)
-    ax[3].set_xlabel(f'-{scoring}')
-    ax[3].set_xscale('log')
-    ax[3].get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+    start = time.time()
+    if is_continuous:
+        negresults = []
+        for i, result in enumerate(results):
+            negresults.append(-1*result)
+        plot_box_and_violin(names, scoring, negresults)
+    else:
+        plot_box_and_violin(names, scoring, results)
     plt.show()
-
+    stop = time.time()
+    print(f'PLOT BAR AND VIOLIN TIME: {stop-start}')
     # ROC CURVE
     # print(f'categorical? {str(!is_continuous)}')
     if not is_continuous:
+        start = time.time()
         galgraphs.plot_rocs(models, df_X, y)
         plt.show()
+        stop = time.time()
+        print(f'PLOT BAR AND VIOLIN TIME: {stop-start}')
     return names, results, models, pipeline
 
 def make_one_ridge(df_X_train, y_train, X_test, alpha):
@@ -584,7 +632,7 @@ def bootstrap_train_premade(model, X, y, bootstraps=1000, **kwargs):
     attribute.
 
     X: A two dimensional numpy array of shape (n_observations, n_features).
-    
+
     y: A one dimensional numpy array of shape (n_observations).
 
     bootstraps: An integer, the number of boostrapped names_models to train.
