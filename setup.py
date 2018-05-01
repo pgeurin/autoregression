@@ -31,5 +31,5 @@ setup(
     ],
     keywords=['statistics','data', 'science', 'datascience']
     packages=['autoregression','cleandata','galgraphs'],
-    install_requires=['numpy', 'pandas', 'scikit-learn', 'matplotlib', 'scipy', 'basis_expansions', 'regression_tools', 'stringcase'],
+    install_requires=['numpy', 'pandas', 'scikit-learn', 'matplotlib', 'scipy', 'basis_expansions', 'regression_tools', 'stringcase', tqdm],
 )
