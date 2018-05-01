@@ -6,9 +6,7 @@ import operator
 import galgraphs
 import importlib.util
 import stringcase
-spec = importlib.util.spec_from_file_location("galgraphs", "/Users/macbookpro/Dropbox/Galvanize/galgraphs/galgraphs/galgraphs.py")
-galgraphs = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(galgraphs)
+import galgraphs
 
 import sys
 import os
@@ -88,4 +86,3 @@ def remove_diverse_categories(df, y_var_name, category_limit):
             df.drop(cat, axis=1)
             print('Too many unique values in categorical feature "' + cat + '", dropping "' + cat + '"')
     return df
-# TODO: Turn these into pipelines
