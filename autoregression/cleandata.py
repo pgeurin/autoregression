@@ -1,16 +1,11 @@
-import importlib.util
-import operator
-import os
-import sys
 
-import matplotlib.pyplot as plt
+import operator
+
 import numpy as np
 import pandas as pd
-import scipy.stats as scs
 import stringcase
 
 import autoregression
-import galgraphs
 
 
 def rename_columns(df):
@@ -137,15 +132,16 @@ def clean_df_X(df_X):
 
 
 def clean_df_respect_to_y(df, y_var_name):
-    """ Drops all rows with missing y_var_name
-        INPUT:
-            df:
-                A dataframe of independent features and one dependent y feature
-            y_var_name:
-                string, the column name of the dependent y variable in the dataframe
-        OUTPUT:
-            df:
-                A df with no missing y variables
+    """ Drops all rows with missing y_var_name.
+
+    INPUT:
+        df:
+            A dataframe of independent features and one dependent y feature
+        y_var_name:
+            string, the column name of the dependent y variable in the dataframe
+    OUTPUT:
+        df:
+            A df with no missing y variables
     """
     return df[~df[y_var_name].isnull()]
 
