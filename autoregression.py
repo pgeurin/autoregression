@@ -52,16 +52,8 @@ plt.style.use('ggplot')
 import os
 import importlib.util
 
-# spec = importlib.util.spec_from_file_location("galgraphs", "/Users/macbookpro/Dropbox/Galvanize/autoregression/galgraphs.py")
-# galgraphs = importlib.util.module_from_spec(spec)
 import galgraphs
-
-# import imp
-# galgraphs = imp.load_source('galgraphs', '/Users/macbookpro/Dropbox/Galvanize/autoregression/galgraphs.py')
-
-spec = importlib.util.spec_from_file_location("cleandata", "/Users/macbookpro/Dropbox/Galvanize/autoregression/cleandata.py")
-cleandata = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(cleandata)
+import cleandata
 
 import tqdm
 import time
@@ -109,9 +101,6 @@ def auto_spline_pipeliner(df_X, knots=10):
     ])
     return pipe_continuous_category
 
-def repeat_spline_pipeliner():
-    pass
-
 def is_equal(level):
     def print_equals(var):
         # print('the var is ' + str(var))
@@ -145,72 +134,14 @@ def simple_category_specification(var_name, levels):
         ("category_features", FeatureUnion(map_features))
     ])
 
-def auto_regression(df, df_test_X, y_var_name, y_test = [], num_alphas=100, alpha_min=.00001, alpha_max=1000000):
-    # KEEP ME: FIX BOOLEAN CASE BEFORE DELETING:
-    # (continuous_features, category_features) = sort_features(df)
-    # df_graphable = df
-    # if len(continuous_features)>15:
-    #     df_graphable = df[continuous_features[:15]]
-    #     print('More continuous features than are graphable in scatter_matrix')
-    # pd.scatter_matrix(df_graphable,figsize = (14,len(df_graphable)*.1))
-    # plt.show()
-    df = data_cleaner.clean_df_respect_to_y(df, y_var_name)
-    df_y = df[y_var_name]
-    df_X = df.drop(y_var_name, axis = 1)
-    df_X = data_cleaner.clean_df_X(df_X)
-    df = df_X
-    df[y_var_name] = df_y
-    num_graphs = int(len(df.columns)/6)
-    galgraphs.plot_many_univariates(df, y_var_name)
+def timeit(func, *args):
+    start = time.time()
+    answers = func(args)
 
+    print(f'{str(func.__name__).upper()} TIME: {time.time() - start}')
+    return answers
 
-    # fit model
-    (rr_optimized, trained_pipeline, y_cv_mean, y_cv_std) = make_k_folds_ridge(df, y_var_name, num_alphas=num_alphas, alpha_min = alpha_min, alpha_max=alpha_max)
-    # apply pipeline to test data
-    df_test_X = cleandata.clean_df_X(df_test_X)
-    df_test_X_added_features = trained_pipeline.transform(df_test_X)
-
-    #find y_hat
-    y_hat = (rr_optimized.predict(df_test_X_added_features) * y_cv_std + y_cv_mean)
-    y_hat = make_linear_regression(df, y_var_name, df_test_X)
-
-    #plot coeffs
-    galgraphs.plot_coefs(rr_optimized.coef_[0], df_test_X_added_features.columns)
-
-    #plot partial dependencies
-    # plot_partial_dependences()
-
-    #plot residuals
-    if len(y_test)>0:
-        if len(y_test) == len(y_hat):
-            (continuous_features, category_features) = sort_features(df_X)
-            galgraphs.plot_many_predicteds_vs_actuals(df_X, continuous_features, y_test, y_hat.reshape(-1), n_bins=50)
-            fig, ax = plt.subplots()
-            galgraphs.plot_residual_error(ax, df_test_X.values[:,0].reshape(-1), y_test.reshape(-1), y_hat.reshape(-1), s=30);
-            print(f'MSE = {np.mean((y_hat-y_test)**2)}')
-        else:
-            print ('len(y_test) != len(y_hat), so no regpressions included' )
-    else:
-        print( 'No y_test, so no regressions included')
-    # (continuous_features, category_features) = sort_features(df)
-    # i_s = int(len(continuous_features) / 3)
-    # fig, ax = plt.subplots(figsize=( 1, i_s * (len(continuous_features)-i_s) ))
-    # for i in range(i_s):
-    #     for j in range(i_s,len(continuous_features)):
-    #         ax.scatter(df.loc[i], df.loc[j], color="grey")
-    #         ax.set_xlabel(df.columns[i])
-    #         ax.set_ylabel(df.columns[j])
-
-    # galgraphs.plot_many_predicteds_vs_actuals(df, df.columns, y_var_name, y_hat, n_bins=50)
-    return (y_hat, rr_optimized, trained_pipeline, y_cv_mean, y_cv_std)
-
-def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, knots=5, bootstrap_coefs=True, partial_dep=True, actual_vs_predicted=True, residual=True, univariates=True, bootstraps=10):
-    def timeit(func, *args):
-        start = time.time()
-        answers = func(args)
-
-        print(f'{str(func.__name__).upper()} TIME: {time.time() - start}')
-        return answers
+def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, knots=5, bootstrap_coefs=True, partial_dep=True, actual_vs_predicted=True, residuals=True, univariates=True, bootstraps=10):
     df = cleandata.rename_columns(df)
     y_var_name = stringcase.snakecase(y_var_name).replace('__','_')
     start = time.time()
@@ -279,14 +210,14 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
         if univariates==True:
             galgraphs.plot_many_univariates(df, y_var_name)
             plt.show()
-        names_models.append(('LR', LinearRegression())) # LinearRegression as no ._coeff???!
+        # names_models.append(('LR', LinearRegression()))
         alphas = np.logspace(start=-5, stop=5, num=5)
         # names_models.append(('RR', RidgeCV(alphas=alphas)))
-        names_models.append(('LASSO', LassoCV(alphas=alphas)))
+        # names_models.append(('LASSO', LassoCV(alphas=alphas)))
         # names_models.append(('DT', DecisionTreeRegressor()))
-        names_models.append(('RF', RandomForestRegressor()))
+        # names_models.append(('RF', RandomForestRegressor()))
         # names_models.append(('GB', GradientBoostingRegressor()))
-        # names_models.append(('GB', AdaBoostRegressor()))
+        names_models.append(('GB', AdaBoostRegressor()))
         # names_models.append(('SVM', SVC()))
         # evaluate each model in turn
         scoring = 'neg_mean_squared_error'
@@ -326,7 +257,7 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
         print(msg)
         plt.show()
 
-        print (f'GET CV RESULTS: {time.time()-start}')
+        print (f'CV CALC TIME: {time.time()-start}')
 
         # #OTHER CROSS VALIDATE METHOD:
         # ridge_regularization_strengths = np.logspace(np.log10(0.000001), np.log10(100000000), num=100)
@@ -416,7 +347,7 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
 
                     print(f'PLOT RESIDUAL ERROR TIME: {time.time() - start}')
                 else:
-                    print ('len(y) != len(y_hat), so no regpressions included' )
+                    print ('len(y) != len(y_hat), so no regressions included' )
             else:
                 print( 'No y, so no regressions included')
 
