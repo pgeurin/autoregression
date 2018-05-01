@@ -35,6 +35,7 @@ TODO:
 	O Add ability to make train/test split on newer data by date instead of CV. 
 	O Add kept lasso regression variables back in (how many do we keep?!) to other datasets
 	O Move to spark
+	O Turn cleandata functions into pipelines
 	0 fix : (BECAUSE RIGHT NOW len(y) WILL NEVER EQUAL y_hat_sample, I need to take the samle sample from y)
 		problem:
 			df_X_sample = df.sample(sample_limit).drop(y_var_name, axis=1)
@@ -44,8 +45,8 @@ TODO:
 	                if len(y) == len(y_hat_sample):
 	    maybe solution is :
 			y_sample = y.iloc[df_X_sample.rows]
-		
-
+	O pickle created models for later use
+	O make conda installable
 
 	------
 	X Add ability to clean data!
