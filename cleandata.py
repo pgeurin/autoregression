@@ -7,10 +7,9 @@ import galgraphs
 import importlib.util
 import stringcase
 import galgraphs
-
+import autoregression
 import sys
 import os
-sys.path.append(os.path.abspath("/Users/macbookpro/Dropbox/Galvanize/autoregression/"))
 import autoregression
 
 def rename_columns(df):
