@@ -1,4 +1,3 @@
-
 def cross_var_train(df, y_var_name, pipeliner=auto_spline_pipeliner, knots=10):
     df_X = df.drop(y_var_name, axis =1)
     pipeline = pipeliner(df_X,knots)
@@ -197,3 +196,42 @@ def auto_regression(df, df_test_X, y_var_name, y_test = [], num_alphas=100, alph
 
     # galgraphs.plot_many_predicteds_vs_actuals(df, df.columns, y_var_name, y_hat, n_bins=50)
     return (y_hat, rr_optimized, trained_pipeline, y_cv_mean, y_cv_std)
+
+
+def rss(model, X, y):
+    preds = model.predict(X)
+    n = X.shape[0]
+    return np.sum((y - preds)**2) / n
+
+def train_and_test_error(regressions, X_train, y_train, X_test, y_test):
+    alphas = [ridge.alpha for ridge in regressions]
+    train_scores = [rss(reg, X_train, y_train) for reg in regressions]
+    test_scores = [rss(reg, X_test, y_test) for reg in regressions]
+    return pd.DataFrame({
+        'train_scores': train_scores,
+        'test_scores': test_scores,
+    }, index=alphas)
+
+def get_optimal_alpha(train_and_test_errors):
+    test_errors = train_and_test_errors["test_scores"]
+    optimal_idx = np.argmin(test_errors.values)
+    return train_and_test_errors.index[optimal_idx]
+
+def plot_train_and_test_error(ax, train_and_test_errors, alpha=1.0, linewidth=2, legend=True):
+    alphas = train_and_test_errors.index
+    optimal_alpha = get_optimal_alpha(train_and_test_errors)
+    ax.plot(np.log10(alphas), train_and_test_errors.train_scores, label="Train MSE",
+            color="blue", linewidth=linewidth, alpha=alpha)
+    ax.plot(np.log10(alphas), train_and_test_errors.test_scores, label="Test MSE",
+            color="red", linewidth=linewidth, alpha=alpha)
+    ax.axvline(x=np.log10(optimal_alpha), color="grey", alpha=alpha)
+    ax.set_xlabel(r"$\log_{10}(\alpha)$")
+    ax.set_ylabel("Mean Squared Error")
+    ax.set_title("Mean Squared Error vs. Regularization Strength")
+    if legend:
+        ax.legend()
+
+def plot_train_and_test_error(ax, ridge_regressions, balance_train, y_train, balance_test, y_test):
+    train_and_test_errors = train_and_test_error(ridge_regressions, df=balance_train, y=y_train, df_test=balance_test, y_test=y_test)
+    fig, ax = plt.subplots(figsize=(16, 4))
+    plot_train_and_test_error(ax, train_and_test_errors)

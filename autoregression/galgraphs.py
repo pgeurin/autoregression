@@ -2,8 +2,8 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
-
 import scipy.stats as scs
+
 from scipy.stats.distributions import norm
 from scipy.stats import gaussian_kde
 from sklearn.neighbors import KernelDensity
@@ -40,7 +40,6 @@ import importlib.util
 import cleandata
 import autoregression
 
-
 # Always make it pretty.
 plt.style.use('ggplot')
 import tqdm
@@ -55,12 +54,12 @@ def emperical_distribution(x, data):
             Same length required
         OUTPUT:
             New output list between 0 and 1 of length len(x)
-        """
-        weight = 1.0 / len(data)
-        count = np.zeros(shape=len(x))
-        for datum in data:
-            count = count + np.array(x >= datum)
-        return weight * count
+    """
+    weight = 1.0 / len(data)
+    count = np.zeros(shape=len(x))
+    for datum in data:
+        count = count + np.array(x >= datum)
+    return weight * count
 
     def plot_emperical_distribution(ax, data):
         """ plots a emperical CMF of data on the matplotib axis ax
@@ -117,7 +116,7 @@ def plot_scatter_matrix(df, y_var_name=None):
             df:
                 dataframe
             y_var_name:
-                the column name of the y variable in the dataframe
+                string, the column name of the dependent y variable in the dataframe
             jitter:
                 a float that widens the data, make this wider according to number of datapoints.
             **options:
@@ -138,7 +137,7 @@ def plot_scatter_matrix(df, y_var_name=None):
             plot_sample_df = df[[y_var_name] + continuous_features[:6]].sample(n=sample_limit)
         else:
             plot_sample_df = df[[continuous_features[:6]].sample(n=sample_limit)
-        pd.scatter_matrix(plot_sample_df, figsize=(len(plot_sample_df)*.07,len(plot_sample_df)*.07))
+        pd.scatter_matrix(plot_sample_df, figsize=( len(plot_sample_df) * .07, len(plot_sample_df) * .07 ))
         plt.show()
         continuous_features = continuous_features[5:]
     plot_sample_df = df[[y_var_name] + continuous_features].sample(n=sample_limit)
@@ -153,9 +152,9 @@ def plot_one_univariate(ax, dataframe, x_var_name, y_var_name, mask=None):
             dataframe:
                 dataframe of floats or ints
             x_var_name:
-                the index name of the x var from dataframe
+                the column name of the x var from dataframe
             y_var_name:
-                the column name of the y variable in the dataframe
+                string, the column name of the dependent y variable in the dataframe
         OUTPUT:
             A linear regression, with light blue bootstrapped lines showing the instability of the regression
     """
@@ -187,7 +186,7 @@ def plot_many_univariates(df, y_var_name):
             x_var_name:
                 the column name of the x variable in the dataframe
             y_var_name:
-                the column name of the y variable in the dataframe
+                string, the column name of the dependent y variable in the dataframe
         OUTPUT:
             A linear regression, with light blue bootstrapped lines showing the instability of the regression
     """
@@ -218,7 +217,7 @@ def plot_predicted_vs_actuals(df, model, y_var_name, sample_limit):
             model:
                 a pre-fit model with a predict method
             y_var_name:
-                the index name of the y var in the dataframe
+                string, the column name of the dependent y variable in the dataframe
             y_hat:
                 a array of y values you predicted to be compared with the values of y_var_name
         OUTPUT:
@@ -240,7 +239,7 @@ def plot_many_predicteds_vs_actuals(df_X, x_var_names, df_y, y_hat, n_bins=50):
             x_var_names:
                 a list of strings that are columns of dataframe
             y_var_name:
-                the index name of the y var from dataframe
+                string, the column name of the dependent y variable in the dataframe
             y_hat:
                 a array of y values you predicted to be compared with the values of y_var_name
         OUTPUT:
@@ -309,7 +308,7 @@ def plot_residual_error(ax, x, y, y_hat, n_bins=50, alpha=.7, s=2):
         #     x_var_names:
         #         a list of strings that are columns of dataframe
         #     y_var_name:
-        #         the index name of the y var from dataframe
+        #         the column name of the dependent y variable from dataframe
         #     y_hat:
         #         a array of y values you predicted to be compared with the values of y_var_name
         # OUTPUT:
@@ -331,7 +330,7 @@ def plot_many_residuals(df_X, y, y_hat, n_bins=50):
             x_var_names:
                 a list of strings that are columns of dataframe
             y_var_name:
-                the column name of the y variable in the dataframe
+                # the column name of the dependent y variable from dataframe
             y_hat:
                 a array of y values you predicted to be compared with the values of y_var_name
         OUTPUT:
@@ -425,7 +424,7 @@ def shaped_plot_partial_dependences(model, df, y_var_name, pipeline=None, n_poin
             df:
                 a dataframe
             y_var_name:
-                the column name of the y variable in the dataframe
+                string, the column name of the dependent y variable in the dataframe
             pipeline:
                 runs on df_X (without y), already fit to df_X.
             n_points:
@@ -596,40 +595,3 @@ def plot_box_and_violins(names, scoring, results):
     ax[3].set_xscale('log')
     ax[3].get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
 
-def rss(model, X, y):
-    preds = model.predict(X)
-    n = X.shape[0]
-    return np.sum((y - preds)**2) / n
-
-def train_and_test_error(regressions, X_train, y_train, X_test, y_test):
-    alphas = [ridge.alpha for ridge in regressions]
-    train_scores = [rss(reg, X_train, y_train) for reg in regressions]
-    test_scores = [rss(reg, X_test, y_test) for reg in regressions]
-    return pd.DataFrame({
-        'train_scores': train_scores,
-        'test_scores': test_scores,
-    }, index=alphas)
-
-def get_optimal_alpha(train_and_test_errors):
-    test_errors = train_and_test_errors["test_scores"]
-    optimal_idx = np.argmin(test_errors.values)
-    return train_and_test_errors.index[optimal_idx]
-
-def plot_train_and_test_error(ax, train_and_test_errors, alpha=1.0, linewidth=2, legend=True):
-    alphas = train_and_test_errors.index
-    optimal_alpha = get_optimal_alpha(train_and_test_errors)
-    ax.plot(np.log10(alphas), train_and_test_errors.train_scores, label="Train MSE",
-            color="blue", linewidth=linewidth, alpha=alpha)
-    ax.plot(np.log10(alphas), train_and_test_errors.test_scores, label="Test MSE",
-            color="red", linewidth=linewidth, alpha=alpha)
-    ax.axvline(x=np.log10(optimal_alpha), color="grey", alpha=alpha)
-    ax.set_xlabel(r"$\log_{10}(\alpha)$")
-    ax.set_ylabel("Mean Squared Error")
-    ax.set_title("Mean Squared Error vs. Regularization Strength")
-    if legend:
-        ax.legend()
-
-def plot_train_and_test_error(ax, ridge_regressions, balance_train, y_train, balance_test, y_test):
-    train_and_test_errors = train_and_test_error(ridge_regressions, df=balance_train, y=y_train, df_test=balance_test, y_test=y_test)
-    fig, ax = plt.subplots(figsize=(16, 4))
-    plot_train_and_test_error(ax, train_and_test_errors)
