@@ -29,7 +29,7 @@ setup(
         'Topic :: Scientific/Engineering',
         'Topic :: Scientific/Engineering :: Mathematics'
     ],
-    keywords=['statistics','data', 'science', 'datascience']
-    packages=['autoregression','cleandata','galgraphs'],
+    keywords=['statistics', 'data', 'science', 'datascience']
+    packages=['autoregression', 'cleandata', 'galgraphs'],
     install_requires=['numpy', 'pandas', 'scikit-learn', 'matplotlib', 'scipy', 'basis_expansions', 'regression_tools', 'stringcase', tqdm],
 )
