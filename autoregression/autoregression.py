@@ -23,7 +23,7 @@ from regression_tools.plotting_tools import (
     display_coef,
     bootstrap_train,
     plot_bootstrap_coefs,
-    plot_partial_depenence,
+    # plot_partial_depenence,
     plot_partial_dependences,
     predicteds_vs_actuals)
 from regression_tools.dftransformers import (
@@ -138,13 +138,18 @@ def timeit(func, *args):
     print(f'{str(func.__name__).upper()} TIME: {time() - start}')
     return answers
 
-def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, knots=5, bootstrap_coefs=True, partial_dep=True, actual_vs_predicted=True, residuals=True, univariates=True, bootstraps=10):
+
+def compare_predictions(df, y_var_name, percent_data=None,
+                        category_limit=11, knots=3, bootstrap_coefs=True,
+                        partial_dep=True, actual_vs_predicted=True,
+                        residuals=True, univariates=True, bootstraps=10):
     df = cleandata.rename_columns(df)
-    y_var_name = stringcase.snakecase(y_var_name).replace('__','_')
+    y_var_name = stringcase.snakecase(y_var_name).replace('__', '_')
     start = time()
-    if percent_data == None:
-        while len(df)>1000:
-            print(f"'percent_data' NOT SPECIFIED AND len(df)=({len(df)}) IS > 1000: TAKING A RANDOM %10 OF THE SAMPLE")
+    if percent_data is None:
+        while len(df) > 1000:
+            print(f"""'percent_data' NOT SPECIFIED AND len(df)=({len(df)})
+                  IS > 1000: TAKING A RANDOM %10 OF THE SAMPLE""")
             df = df.sample(frac=.1)
     else:
         df = df.sample(frac=percent_data)
@@ -161,7 +166,7 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
     columns_unpiped.remove(y_var_name)
 
     # REMOVE CATEGORICAL VARIABLES THAT HAVE TOO MANY CATEGORIES TO BE USEFUL
-    df = cleandata.remove_diverse_categories(df, y_var_name, category_limit)
+    df = cleandata.drop_category_exeeding_limit(df, y_var_name, category_limit)
 
 
     # SHOW CORRELATION MATRIX
@@ -208,11 +213,11 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
             galgraphs.plot_many_univariates(df, y_var_name)
             plt.show()
         # names_models.append(('LR', LinearRegression()))
-        alphas = np.logspace(start=-5, stop=5, num=5)
-        # names_models.append(('RR', RidgeCV(alphas=alphas)))
+        alphas = np.logspace(start=-2, stop=5, num=5)
+        names_models.append(('RR', RidgeCV(alphas=alphas)))
         # names_models.append(('LASSO', LassoCV(alphas=alphas)))
         # names_models.append(('DT', DecisionTreeRegressor()))
-        # names_models.append(('RF', RandomForestRegressor()))
+        names_models.append(('RF', RandomForestRegressor()))
         # names_models.append(('GB', GradientBoostingRegressor()))
         names_models.append(('GB', AdaBoostRegressor()))
         # names_models.append(('SVM', SVC()))
@@ -288,7 +293,7 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
 
         #PLOT COEFFICIANTS
 
-        if "coef_" in dir(model):
+        if hasattr(model, "coef_"):
             start = time()
             coefs = model.coef_
             columns=list(df.columns)
@@ -313,10 +318,11 @@ def compare_predictions(df, y_var_name, percent_data=None, category_limit=11, kn
         # PLOT PARTIAL DEPENDENCIES
         if partial_dep:
             start = time()
-            plot_partial_dependences(model, X=df_unpiped.drop(y_var_name, axis=1), var_names=columns_unpiped, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
+            # plot_partial_dependences(model, X=df_unpiped.drop(y_var_name, axis=1), var_names=columns_unpiped, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
+            # galgraphs.plot_partial_dependences(model, X=df_unpiped.drop(y_var_name, axis=1), var_names=columns_unpiped, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
             plt.show()
-            # galgraphs.shaped_plot_partial_dependences(model, df, y_var_name)
-            # plt.show()
+            galgraphs.shaped_plot_partial_dependences(model, df, y_var_name)
+            plt.show()
             print(f'PLOT PARTIAL DEPENDENCIES TIME: {time() - start}')
 
         # PLOT PREDICTED VS ACTUALS

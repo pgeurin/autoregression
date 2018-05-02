@@ -17,12 +17,16 @@ The code used here HEAVILY relies upon the foundational work of Matt Drury.
 This project just wouldn't be the same without it.
 Pandas and matplotlib. are also foundational tools to the work.
 
+![Partial Dependency](example_plots/partial_dependency.png)
+
 ## Cleandata
 Cleans pandas dataframes using modern machine learning practices.
 
 Turn first to clean_df(). It's your friend in a world of darkness.
 It detects all manner of unmentionable values and replaces them with the mean or
 distinguishing feature.
+
+![Box and Violin](example_plots/box_and_violin.png)
 
 ## Installation
 

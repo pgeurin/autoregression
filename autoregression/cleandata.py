@@ -7,6 +7,12 @@ import stringcase
 
 import autoregression
 
+import warnings
+warnings.filterwarnings("ignore", """SettingWithCopyWarning:
+A value is trying to be set on a copy of a slice from a DataFrame""")
+
+def fxn():
+    warnings.warn("ignore", Warning)
 
 def rename_columns(df):
     """ all column labels in lower_snake_case
@@ -75,8 +81,11 @@ def add_feature_continuous_null(df_X, cont_feature_name):
     if (df_X[cont_feature_name] == np.inf).any():
         df_X[cont_feature_name +
              "_was_inf"] = (df_X[cont_feature_name] == np.inf)
-        df_X[cont_feature_name][df_X[cont_feature_name] == np.inf] = np.mean(
-            df_X[cont_feature_name][df_X[cont_feature_name] != np.inf])
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            df_X[cont_feature_name][df_X[cont_feature_name] == np.inf] = np.mean(df_X[cont_feature_name][df_X[cont_feature_name] != np.inf])
+            fxn()
 
     if (df_X[cont_feature_name] == -np.inf).any():
         df_X[cont_feature_name +
@@ -104,9 +113,14 @@ def category_clean_null_and_inf(df_X, cat_feature_name):
             df_X:
                 The same dataframe, with meaned values that were null. At most three new features (of 0's and 1's).
     """
-    df_X[cat_feature_name][df_X[cat_feature_name] == np.inf] = "was_inf"
-    df_X[cat_feature_name][df_X[cat_feature_name] == -np.inf] = "was_neg_inf"
-    df_X[cat_feature_name][pd.isnull(df_X[cat_feature_name])] = "was_null"
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        df_X[cat_feature_name][df_X[cat_feature_name] == np.inf] = "was_inf"
+        fxn()
+        df_X[cat_feature_name][df_X[cat_feature_name] == -np.inf] = "was_neg_inf"
+        fxn()
+        df_X[cat_feature_name][pd.isnull(df_X[cat_feature_name])] = "was_null"
+        fxn()
     return df_X
 
 
@@ -166,7 +180,7 @@ def clean_df(df, y_var_name):
     return df
 
 
-def drop_category_exeeding_limit(df, var_name):
+def drop_category_exeeding_limit(df, var_name, category_limit):
     """ Drops category if its # of unique variables exceed the limit.
         INPUT:
             df:
@@ -177,8 +191,8 @@ def drop_category_exeeding_limit(df, var_name):
             df:
                 A dataframe with one less feature if it exeeds the limit.
     """
-    if len(df[cat].unique()) > category_limit:
-        df.drop(cat, axis=1)
+    if len(df[var_name].unique()) > category_limit:
+        df.drop(var_name, axis=1)
     return df
 
 

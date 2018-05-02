@@ -6,8 +6,6 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import scipy.optimize as optim
-import scipy.stats as scs
 import tqdm
 from basis_expansions.basis_expansions import NaturalCubicSpline
 from regression_tools.dftransformers import (ColumnSelector, FeatureUnion,
@@ -19,21 +17,9 @@ from regression_tools.plotting_tools import (bootstrap_train, display_coef,
                                              plot_partial_depenence,
                                              plot_univariate_smooth,
                                              predicteds_vs_actuals)
-from scipy.stats import gaussian_kde
-from scipy.stats.distributions import norm
-from sklearn.linear_model import LinearRegression
 from sklearn.metrics import auc, roc_curve
-from sklearn.model_selection import train_test_split
-from sklearn.neighbors import KernelDensity
 from sklearn.pipeline import Pipeline
-from sklearn.utils import resample
-from statsmodels.nonparametric.kde import KDEUnivariate
-from statsmodels.nonparametric.kernel_density import KDEMultivariate
-from sympy import Symbol
-from sympy.solvers import solve
-
 import autoregression
-import cleandata
 
 # Always make it pretty.
 plt.style.use('ggplot')
@@ -136,13 +122,14 @@ def plot_scatter_matrix(df, y_var_name=None):
             plot_sample_df = df[[y_var_name] +
                                 continuous_features[:6]].sample(n=sample_limit)
         else:
-            plot_sample_df = df[[continuous_features[:6]].sample(n=sample_limit)
-        pd.scatter_matrix(plot_sample_df, figsize=(len(plot_sample_df) * .07,
+            plot_sample_df = df[continuous_features[:6]].sample(n=sample_limit)
+
+        pd.plotting.scatter_matrix(plot_sample_df, figsize=(len(plot_sample_df) * .07,
                                                    len(plot_sample_df) * .07))
         plt.show()
         continuous_features= continuous_features[5:]
     plot_sample_df = df[[y_var_name] + continuous_features].sample(n=sample_limit)
-    pd.scatter_matrix(plot_sample_df, figsize=(len(plot_sample_df) * .1,
+    pd.plotting.scatter_matrix(plot_sample_df, figsize=(len(plot_sample_df) * .1,
                                                len(plot_sample_df) * .1))
 
 def plot_one_univariate(ax, df, x_var_name, y_var_name, mask=None):
@@ -403,17 +390,19 @@ def gal_display_coef(coefs, coef_names):
         row="{:<35}{:<20}".format(name, coef)
         print(row)
 
-def shaped_plot_partial_dependences(model, df, y_var_name, pipeline=None, n_points=250, **kwargs):
+def shaped_plot_partial_dependences(model, df, y_var_name, pipeline=None,
+                                    n_points=250, **kwargs):
     """Creates many partial dependency plots.
         INPUT:
             model:
-                a sklearn model, already fit.
+                A sklearn model, already fit.
             df:
-                a dataframe
+                A dataframe containing independent variables y
+                and dependent variables X.
             y_var_name:
-                string, the column name of the dependent y variable in the dataframe
+                String, the column name of the dependent y variable in the dataframe
             pipeline:
-                runs on df_X (without y), already fit to df_X.
+                Runs on df_X (without y), already fit to df_X.
             n_points:
                 the number of points to plot
             *kwargs:
@@ -465,31 +454,35 @@ def plot_partial_dependences(model, X, var_names, y=None, bootstrap_models=None,
     """Creates many partial dependency plots.
         INPUT:
             model:
-                a sklearn model, already fit.
+                A sklearn model, already fit.
             X:
-                a dataframe
+                A dataframe or array containing independent variables
+                that fit in pipeline.
             var_names:
-                the column names of the x variables in the dataframe you want plotted
+                The column names of the x variables in the
+                dataframe you want plotted.
             y:
-                a dataframe or array, the dependent variable. Is plotted in grey.
+                A dataframe or array, the dependent variable.
+                Plotted in grey.
             pipeline:
-                runs on df_X (without y), already fit to df_X.
+                Runs on df_X (without y), already fit to df_X.
             n_points:
-                the number of points to plot
+                The number of points to plot.
             *kwargs:
-                extra arguments passed to plot_partial_dependence
+                Extra arguments passed to plot_partial_dependence.
         OUTPUT:
-            an array of partial dependence plots, describing each varible's contibution to the regression.
+            an array of partial dependence plots, describing each varible's
+            contibution to the regression.
     """
     fig, axs=plt.subplots(len(var_names), figsize=(12, 3 * len(var_names)))
     for ax, name in zip(axs, var_names):
         if bootstrap_models:
-            for M in bootstrap_models[:100]:
-                print(M)
+            for M in bootstrap_models[:10]:
+                # print(M)
                 plot_partial_depenence(
                     ax, M, X=X, var_name=name, pipeline=pipeline, alpha=0.8,
                     linewidth=1, color="lightblue")
-        print(model)
+        # print(model)
         plot_partial_depenence(ax, model, X=X, var_name=name,
                                y=y, pipeline=pipeline, color="blue", linewidth=3)
         ax.set_title("{} Partial Dependence".format(name))
