@@ -255,7 +255,6 @@ def compare_predictions(df, y_var_name, percent_data=None,
         # CROSS VALIDATE MODELS
         start = time()
         kfold = model_selection.KFold(n_splits=10, random_state=seed)
-        print(model)
         cv_results = model_selection.cross_val_score(model, X, y, cv=kfold, scoring=scoring)
 
         results.append(cv_results)
@@ -301,7 +300,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
         if hasattr(model, "coef_"):
             start = time()
             coefs = model.coef_
-            columns=list(df.columns)
+            columns = list(df.columns)
             columns.remove(y_var_name)
             while (type(coefs[0]) is list) or (type(coefs[0]) is np.ndarray):
                 coefs = list(coefs[0])
@@ -326,9 +325,12 @@ def compare_predictions(df, y_var_name, percent_data=None,
             plot_partial_dependences(model, X=df_unpiped.drop(y_var_name, axis=1), var_names=unpiped_continuous_features, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
             # galgraphs.plot_partial_dependences(model, X=df_unpiped.drop(y_var_name, axis=1), var_names=columns_unpiped, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
             plt.show()
-            # galgraphs.shaped_plot_partial_dependences(model, df, y_var_name)
+            print(f'PLOT CONTINOUS PARTIAL DEPENDENCIES TIME: {time() - start}')
+            start = time()
+            hot_categorical_vars = [column for column in df.columns if (len(df[column].unique()) == 2)]
+            galgraphs.shaped_plot_partial_dependences(model, df[[y_var_name]+hot_categorical_vars], y_var_name)
             plt.show()
-            print(f'PLOT PARTIAL DEPENDENCIES TIME: {time() - start}')
+            print(f'PLOT CATEGORICAL PARTIAL DEPENDENCIES TIME: {time() - start}')
 
         # PLOT PREDICTED VS ACTUALS
 

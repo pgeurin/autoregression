@@ -149,8 +149,6 @@ def plot_one_univariate(ax, df, x_var_name, y_var_name, mask=None):
     """
     min_y = min(df[y_var_name])
     max_y = max(df[y_var_name])
-    print(min_y)
-    print(max_y)
     ax.set_ylim(min_y - .1 * np.abs(min_y), max_y + .1 * np.abs(max_y))
     if mask is None:
         plot_univariate_smooth(
