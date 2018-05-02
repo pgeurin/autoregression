@@ -160,7 +160,9 @@ def compare_predictions(df, y_var_name, percent_data=None,
     print(f'CLEAN_DF TIME: {time()-start}')
 
     # REMEMBER OLD DATAFRAME
+
     df_unpiped = df.copy()
+    (unpiped_continuous_features, unpiped_category_features) = sort_features(df_unpiped.drop(y_var_name, axis=1))
     columns_unpiped = df.columns
     columns_unpiped = list(columns_unpiped)
     columns_unpiped.remove(y_var_name)
@@ -205,7 +207,10 @@ def compare_predictions(df, y_var_name, percent_data=None,
 
     # CHOOSE MODELS FOR CONTINUOUS OR CATEGORICAL Y
     names_models = []
-    is_continuous = 2 < len(y.unique())
+    print(len(y.unique()))
+
+    (continuous_features, category_features) = sort_features(df_X)
+    is_continuous = (y_var_name in continuous_features)
     if is_continuous:
         print ( 'Y VARIABLE: "' + y_var_name + '" IS CONTINUOUS' )
         print()
@@ -318,10 +323,10 @@ def compare_predictions(df, y_var_name, percent_data=None,
         # PLOT PARTIAL DEPENDENCIES
         if partial_dep:
             start = time()
-            # plot_partial_dependences(model, X=df_unpiped.drop(y_var_name, axis=1), var_names=columns_unpiped, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
+            plot_partial_dependences(model, X=df_unpiped.drop(y_var_name, axis=1), var_names=unpiped_continuous_features, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
             # galgraphs.plot_partial_dependences(model, X=df_unpiped.drop(y_var_name, axis=1), var_names=columns_unpiped, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
             plt.show()
-            galgraphs.shaped_plot_partial_dependences(model, df, y_var_name)
+            # galgraphs.shaped_plot_partial_dependences(model, df, y_var_name)
             plt.show()
             print(f'PLOT PARTIAL DEPENDENCIES TIME: {time() - start}')
 
@@ -373,13 +378,11 @@ def compare_predictions(df, y_var_name, percent_data=None,
     plt.show()
     print(f'PLOT BAR AND VIOLIN TIME: {time() - start}')
     # ROC CURVE
-    # print(f'categorical? {str(!is_continuous)}')
     if not is_continuous:
         start = time()
         galgraphs.plot_rocs(models, df_X, y)
         plt.show()
-
-        print(f'PLOT BAR AND VIOLIN TIME: {time() - start}')
+        print(f'PLOT ROC TIME: {time() - start}')
     return names, results, models, pipeline
 
 def bootstrap_train_premade(model, X, y, bootstraps=1000, **kwargs):

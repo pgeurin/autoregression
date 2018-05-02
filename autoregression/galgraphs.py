@@ -147,8 +147,10 @@ def plot_one_univariate(ax, df, x_var_name, y_var_name, mask=None):
         OUTPUT:
             A linear regression, with light blue bootstrapped lines showing the instability of the regression
     """
-    min_y= min(df[y_var_name])
-    max_y= max(df[y_var_name])
+    min_y = min(df[y_var_name])
+    max_y = max(df[y_var_name])
+    print(min_y)
+    print(max_y)
     ax.set_ylim(min_y - .1 * np.abs(min_y), max_y + .1 * np.abs(max_y))
     if mask is None:
         plot_univariate_smooth(
@@ -179,8 +181,9 @@ def plot_many_univariates(df, y_var_name):
         OUTPUT:
             A linear regression, with light blue bootstrapped lines showing the instability of the regression
     """
-    (continuous_features, category_features)= autoregression.sort_features(df)
-    continuous_features_greater_two= list(filter(lambda x: len(df[x].unique()) > 2, continuous_features))
+    (continuous_features, category_features) = autoregression.sort_features(df)
+    print(continuous_features)
+    continuous_features_greater_two = list(filter(lambda x: len(df[x].unique()) > 2, continuous_features))
     if len(continuous_features_greater_two) > 1:
         num_plot_rows=int(np.ceil(len(continuous_features_greater_two) / 2.0))
         fig, axs=plt.subplots(
@@ -410,6 +413,7 @@ def shaped_plot_partial_dependences(model, df, y_var_name, pipeline=None,
         OUTPUT:
             an array of partial dependence plots, describing each varible's contibution to the regression.
     """
+
     X_features=list(df.columns)
     X_features.remove(y_var_name)
     if len(X_features) > 1:
