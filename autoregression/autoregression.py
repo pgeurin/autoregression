@@ -323,12 +323,13 @@ def compare_predictions(df, y_var_name, percent_data=None,
         if partial_dep:
             start = time()
             plot_partial_dependences(model, X=df_unpiped.drop(y_var_name, axis=1), var_names=unpiped_continuous_features, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
+            # plot_partial_dependences(model, X=df_unpiped.drop(y_var_name, axis=1), var_names=columns_unpiped, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
             # galgraphs.plot_partial_dependences(model, X=df_unpiped.drop(y_var_name, axis=1), var_names=columns_unpiped, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
             plt.show()
             print(f'PLOT CONTINOUS PARTIAL DEPENDENCIES TIME: {time() - start}')
             start = time()
             hot_categorical_vars = [column for column in df.columns if (len(df[column].unique()) == 2)]
-            galgraphs.shaped_plot_partial_dependences(model, df[[y_var_name]+hot_categorical_vars], y_var_name)
+            # galgraphs.shaped_plot_partial_dependences(model, df[[y_var_name]+hot_categorical_vars], y_var_name)
             plt.show()
             print(f'PLOT CATEGORICAL PARTIAL DEPENDENCIES TIME: {time() - start}')
 
