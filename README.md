@@ -1,6 +1,8 @@
 # Autoregression
 
-Here are the tools to automatically assess and test multiple working
+Clean, graph, and model your data in one command.
+
+Automatically assess and test multiple working
 machine learning techniques.  
 
 Included are two extra modules:
