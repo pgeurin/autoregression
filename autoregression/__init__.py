@@ -1,1 +1,1 @@
-import autoregression
+from autoregression import *
