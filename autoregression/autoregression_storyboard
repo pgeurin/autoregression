@@ -21,8 +21,9 @@ TODO:
 	X Decide if categorical column (non int or float) has too many categories, then drop column.
 	X refactor graphing tools
 	X Add 'take 10% sample first' and maybe even 1%
-	check standardize?
-	turn the graph 90 deg
+	O add datetime identifier
+	O check standardize?
+	O turn the graph 90 deg
 	O Add gridsearch to change scoring function AND test varibles
 	O Plot the Train Test comparison graph AND choose the best model parameters
 	O Add jitter to the compare prediction in the binary case
