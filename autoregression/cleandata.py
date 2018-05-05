@@ -1,11 +1,9 @@
-
 import operator
-
 import numpy as np
 import pandas as pd
 import stringcase
 
-import autoregression
+from autoregression import autoregression
 
 import warnings
 warnings.filterwarnings("ignore", """SettingWithCopyWarning:

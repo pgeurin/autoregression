@@ -47,8 +47,10 @@ import stringcase
 # Always make it pretty.
 plt.style.use('ggplot')
 
-import galgraphs
-import cleandata
+from autoregression import galgraphs
+from autoregression import cleandata
+# import galgraphs
+# import cleandata
 
 import os
 import tqdm

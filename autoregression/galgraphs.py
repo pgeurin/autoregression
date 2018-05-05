@@ -1,7 +1,3 @@
-import importlib.util
-import os
-import sys
-
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -19,7 +15,7 @@ from regression_tools.plotting_tools import (bootstrap_train, display_coef,
                                              predicteds_vs_actuals)
 from sklearn.metrics import auc, roc_curve
 from sklearn.pipeline import Pipeline
-import autoregression
+from autoregression import autoregression
 
 # Always make it pretty.
 plt.style.use('ggplot')
