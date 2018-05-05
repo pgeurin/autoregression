@@ -1,0 +1,14 @@
+MANIFEST.in
+README.md
+long_description.txt
+setup.py
+autoregression/__init__.py
+autoregression/autoregression.py
+autoregression/cleandata.py
+autoregression/galgraphs.py
+autoregression/ridge_regression.py
+autoregression.egg-info/PKG-INFO
+autoregression.egg-info/SOURCES.txt
+autoregression.egg-info/dependency_links.txt
+autoregression.egg-info/requires.txt
+autoregression.egg-info/top_level.txt
