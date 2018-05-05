@@ -22,13 +22,14 @@ TODO:
 	X refactor graphing tools
 	X Add 'take 10% sample first' and maybe even 1%
 	O add datetime identifier
-	O check standardize?
+	O check standardization?
 	O turn the graph 90 deg
 	O Add gridsearch to change scoring function AND test varibles
 	O Plot the Train Test comparison graph AND choose the best model parameters
 	O Add jitter to the compare prediction in the binary case
 	O Add relative importances of DT and RF. (Significance factors)
 	O Plot Lasso Regression variables
+	O Tree feature importances
 	O Add nlp if there's a longgggg string
 	O Add image processing (with that simple regression thing) if there are matrixes of equal(ish) size
 	X Make barplots into violin plots
