@@ -19,7 +19,7 @@ The code used here HEAVILY relies upon the foundational work of Matt Drury.
 This project just wouldn't be the same without it.
 Pandas and matplotlib. are also foundational tools to the work.
 
-![Partial Dependency](example_plots/partial_dependency.png)
+![iris_autoregression](example_plots/iris_autoregression_02.gif)
 
 ## Cleandata
 Cleans pandas dataframes using modern machine learning practices.

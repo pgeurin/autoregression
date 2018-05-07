@@ -1,0 +1,94 @@
+Metadata-Version: 1.1
+Name: autoregression
+Version: 0.0.4
+Summary: Series of Data Science Graphs written by Philip Geurin and Matt Drury
+Home-page: https://github.com/pgeurin/autoregression
+Author: Philip Geurin and Matt Drury
+Author-email: philip.geurin@gmail.com
+License: BSD
+Description: 
+        # Autoregression
+        
+        Here are the tools to automatically assess and test multiple working
+        machine learning techniques.
+        
+        
+        ## Installation
+        
+        A `setup.py` file is included. To install into a python environment run
+        
+        ```bash
+        pip install git+https://github.com/pgeurin/autoregression.git
+        ```
+        
+        Included are two extra modules:
+        
+        
+        ##Galgraphs
+        Here you will find graphing functions for numpy arrays and pandas dataframes.
+        
+        Graphs with ax take a axis from matplotlib.
+        Use pattern matplotlib 'fig, ax = subplots(1,1)' for best effect.
+        
+        Graphs without an 'ax' input plot themselves.
+        
+        The code used here HEAVILY relies upon the foundational work of Matt Drury.
+        This project just wouldn't be the same without it.
+        Pandas and matplotlib. are also foundational tools to the work.
+        
+        How to use the documentation
+        ----------------------------
+        Documentation in docstrings provided with the code.
+        
+        We recommend exploring the docstrings using
+        `IPython <http://ipython.org/>`_, an advanced Python shell with
+        TAB-completion and introspection capabilities.
+        
+        Use the built-in ``help`` function to view a function's docstring::
+        
+        Available graphs:
+        ---------------------
+         'emperical_distribution',
+         'one_dim_scatterplot',
+         'plot_emperical_distribution',
+         'plot_many_predicteds_vs_actuals',
+         'plot_many_residuals',
+         'plot_one_univariate',
+         'plot_solution_paths',
+         'plot_univariate_smooth',
+         'predicteds_vs_actuals',
+         'residual_plot',
+         'simple_indicator_specification',
+         'simple_spline_specification',
+         'standardize_y',
+         'train_test_split'
+        
+        ##Cleandata
+        Cleans pandas dataframes using modern machine learning practices.
+        
+        Turn first to clean_df(). It's your friend in a world of darkness.
+        It detects all manner of unmentionable values and replaces them with the mean or
+        distinguishing feature.
+        
+        
+        ## Versioning
+        
+        0.0.1 - Working graphs.
+        0.0.2 - Documentation.
+        0.0.3 - More graphs.
+        0.0.4 - Cleaning. AutoRegression.
+        
+Keywords: statistics,data,science,datascience
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Education
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Topic :: Scientific/Engineering
+Classifier: Topic :: Scientific/Engineering :: Mathematics
