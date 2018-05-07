@@ -17,7 +17,7 @@ The code used here HEAVILY relies upon the foundational work of Matt Drury.
 This project just wouldn't be the same without it.
 Pandas and matplotlib. are also foundational tools to the work.
 
-![iris_autoregression](example_plots/iris_autoregression.gif)
+![iris_autoregression](example_plots/iris_autoregression_02.gif)
 
 ## Cleandata
 Cleans pandas dataframes using modern machine learning practices.
