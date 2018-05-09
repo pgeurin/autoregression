@@ -104,7 +104,7 @@ def is_equal(level):
     def print_equals(var):
         # print('the var is ' + str(var))
         # print('the var is ' + str(level))
-        return var==level
+        return var == level
     return print_equals
 
 def simple_category_specification(var_name, levels):
@@ -142,7 +142,7 @@ def timeit(func, *args):
 
 
 def compare_predictions(df, y_var_name, percent_data=None,
-                        category_limit=11, knots=3, bootstrap_coefs=True,
+                        category_limit=11, knots=3, corr_matrix=True, scatter_matrix=True, bootstrap_coefs=True,
                         partial_dep=True, actual_vs_predicted=True,
                         residuals=True, univariates=True, bootstraps=10):
     df = cleandata.rename_columns(df)
@@ -174,21 +174,23 @@ def compare_predictions(df, y_var_name, percent_data=None,
 
 
     # SHOW CORRELATION MATRIX
-    if len(df) < 300:
-        sample_limit = len(df)
-    else:
-        sample_limit = 300
-    start = time()
-    plt.matshow(df.sample(sample_limit).corr())
-    plt.show()
-    print(f'PLOT CORRELATION TIME: {time() - start}')
+    if corr_matrix:
+        if len(df) < 300:
+            sample_limit = len(df)
+        else:
+            sample_limit = 300
+        start = time()
+        plt.matshow(df.sample(sample_limit).corr())
+        plt.show()
+        print(f'PLOT CORRELATION TIME: {time() - start}')
 
     # MAKE SCATTER MATRIX
-    start = time()
-    galgraphs.plot_scatter_matrix(df, y_var_name)
-    plt.show()
-    print(f'MAKE SCATTER TIME: {time() - start}')
-    print()
+    if scatter_matrix:
+        start = time()
+        galgraphs.plot_scatter_matrix(df, y_var_name)
+        plt.show()
+        print(f'MAKE SCATTER TIME: {time() - start}')
+        print()
 
 
     print('DF COLUMNS: ')
