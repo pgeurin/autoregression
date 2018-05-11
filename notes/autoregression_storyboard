@@ -27,7 +27,9 @@ TODO:
 	O make a make test.py program
 	O add datetime identifier: what do I do with it?
 	O check standardization?
-	O turn the graph 90 deg
+	X turn the vioin plots 90 deg
+	O change violinplots log on y, not x.
+	O fix nameing on violin plots
 	O Add gridsearch to change scoring function AND test varibles
 	O Plot the Train Test comparison graph AND choose the best model parameters
 	O Add jitter to the compare prediction in the binary case
