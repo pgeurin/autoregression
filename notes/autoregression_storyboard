@@ -1,0 +1,95 @@
+autoregression
+
+TODO:
+	X add graphing utility to new super regression
+	X plot one var splines if continuous
+	X add Partial Dependence Plots
+	X Add autopipeline to data
+	X remove empty univariate graphs, empty bc of the 2 variable case
+	X (detect number of cont varables ahead of time)
+	X some error in the partial depednecy plot
+	X offer a random samling of the data
+	X? for categorical variables make PREDICTEDS VS ACTUALS A ROC curve
+	make alpha relative to number of rows
+	X put cleandata.py, and galgraphs.py in autoregression
+	X toggle univariate
+	X turn off univariate plot for binary cases
+	X take the log of the bar graph errors
+	X Add bootstrap to 'shaped_plot_partial_dependences' a-la 'plot_partial_dependences'
+	X add boosting
+	X Plot residuals
+	X Decide if categorical column (non int or float) has too many categories, then drop column.
+	X refactor graphing tools
+	X Add 'take 10% sample first' and maybe even 1%
+	O fix on <300 variables
+	O find eliotts' error in scatter_matix "TypeError: numpy boolean subtract, the `-` operator, is deprecated, use the bitwise_xor, the `^` operator, or the logical_xor function instead."
+	O correct violin plot labels
+	O make a make test.py program
+	O add datetime identifier: what do I do with it?
+	O check standardization?
+	O turn the graph 90 deg
+	O Add gridsearch to change scoring function AND test varibles
+	O Plot the Train Test comparison graph AND choose the best model parameters
+	O Add jitter to the compare prediction in the binary case
+	O Add relative importances of DT and RF. (Significance factors)
+	O Plot Lasso Regression variables
+	O put partial diff eq. 2 X N (side by side)
+	O Tree feature importances
+	O Add nlp if there's a string of 4 or more words in 30% of a column
+	O make manual setting for each variable
+	O Add image processing (with that simple regression thing) if there are matrixes of equal(ish) size
+	X Make barplots into violin plots
+	O Make PREDICTEDS VS ACTUALS into a scatter plot for the categorical variable case
+	O Add coeff bootstrap plot to continuous varible: gets "ValueError: could not broadcast input array from shape (32) into shape (1)" error
+	O Ensemble the solutions with best LR on some new Train Data.
+	O Add ability to make train/test split on newer data by date instead of CV.
+	O Add kept lasso regression variables back in (how many do we keep?!) to other datasets
+	O Handle predicting more than two catagories - Break multivariabes into sections, plot each one?
+	O Move to spark???
+	O Fix many the MANY features limit on graph?
+	O if y==None: perform Clustering.
+	O NLP naive_bayes on the side. (or add it in?, let that be an option,)
+	O Turn cleandata functions into pipelines so we can clean separate data.
+	0 fix : (BECAUSE RIGHT NOW len(y) WILL NEVER EQUAL y_hat_sample, I need to take the samle sample from y)
+		problem:
+			df_X_sample = df.sample(sample_limit).drop(y_var_name, axis=1)
+	        y_hat_sample = model.predict(df_X_sample)
+	        if is_continuous:
+	            if len(y)>0:
+	                if len(y) == len(y_hat_sample):
+	    maybe solution is :
+			y_sample = y.iloc[df_X_sample.rows]
+	O pickle created models for later use
+	O make conda installable
+
+	------
+	X Add ability to clean data!
+	X Test current regression against simple linear case
+	- Trouble shoot shitty regression
+		- look at coeffs
+		- look at features
+	Finish testing case study regression
+	X add ability to handle only continous variables
+	only ability to handle only categories variables
+	X add ability to handle regressions
+	- add ability to handle categorical results in y column
+	X Make ALL THE GRAPH
+	X graph the coeffs
+	- make testing ability
+	- detect loads of text, nlp it.
+	X make graphs?
+	X Remove splines from multiuse?
+	X Create testing environment
+	X Compare regressions
+	- Handle/drop dates
+	- Handle units?
+	X Remove data leakage from N/A or INF results in the answers. DROP THOSE COLUMNS INSTEAD.
+	- Try one data set
+	- Try lasso
+	- Remove standarization for y
+	X need to make a separate parameter for the 1000 year old cases
+	- make it's own test set
+	- offer changes to plotting_tools from the changes in galgraphs: the tools are more generalized this way. (Or at least the ability to handle new cases)
+Writeup:
+
+It is well known that data scientists spend 90% of their time cleaning data. That leaves a 1.8billion dollars on the table for the one who can automatically clean a dataset.
