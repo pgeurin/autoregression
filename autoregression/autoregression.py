@@ -386,11 +386,12 @@ def compare_predictions(df, y_var_name, percent_data=None,
         else:
             if 'predict_proba' in dir(model):
                 y_hat = model.predict_proba(df_X)
-                print(f'{name}: logloss = {np.mean((y * np.log(y_hat) + ((1 - y) * np.log(1 - y_hat)))}')
+                logloss = np.mean( y * np.log(y_hat) + (1 - y) * np.log(1 - y_hat))
+                print(f'{name}: logloss = {logloss}')
             if 'decision_function' in dir(model):
                 d = clf.decision_function(x)[0]
                 y_hat = np.exp(d) / np.sum(np.exp(d))
-                    print(f'{name}: logloss = {np.mean((y_hat-y)**2)}')
+                print(f'{name}: logloss = {np.mean((y_hat-y)**2)}')
 
     # --COMPARE MODELS--
     if compare_models:
