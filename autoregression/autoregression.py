@@ -172,17 +172,8 @@ def compare_predictions(df, y_var_name, percent_data=None,
     df = cleandata.clean_df(df, y_var_name)
     print(f'CLEAN_DF TIME: {time()-start}')
 
-    # REMEMBER OLD DATAFRAME
-
-    df_unpiped = df.copy()
-    (unpiped_continuous_features, unpiped_category_features) = sort_features(df_unpiped.drop(y_var_name, axis=1))
-    columns_unpiped = df.columns
-    columns_unpiped = list(columns_unpiped)
-    columns_unpiped.remove(y_var_name)
-
     # REMOVE CATEGORICAL VARIABLES THAT HAVE TOO MANY CATEGORIES TO BE USEFUL
     df = cleandata.drop_category_exeeding_limit(df, y_var_name, category_limit)
-
 
     # SHOW CORRELATION MATRIX
     if corr_matrix:
@@ -203,28 +194,36 @@ def compare_predictions(df, y_var_name, percent_data=None,
         print(f'MAKE SCATTER TIME: {time() - start}')
         print()
 
+    # REMEMBER OLD DATAFRAME
+    df_unpiped = df.copy()
+    (unpiped_continuous_features, unpiped_category_features) = sort_features(df_unpiped.drop(y_var_name, axis=1))
+    columns_unpiped = list(df.columns)
+    columns_unpiped.remove(y_var_name)
 
-    print('DF COLUMNS: ')
-    print(str(list(df.columns)))
-    print()
     # TRANSFORM DATAFRAME
-    df_X = df.drop(y_var_name, axis = 1)
-    pipeline = auto_spline_pipeliner(df_X, knots=5)
-    pipeline.fit(df_X)
-    df_X = pipeline.transform(df_X)
-    X = df_X.values
-    y = df[y_var_name]
-    df = df_X
-    df[y_var_name] = y
+    print('DF COLUMNS: ')
+    print(str(list(df_unpiped.columns)))
+    print()
+
+    df_X_unpiped, y = df_unpiped.drop(y_var_name, axis = 1), df_unpiped[y_var_name]
+    pipeline = auto_spline_pipeliner(df_X_unpiped, knots=5)
+    pipeline.fit(df_X_unpiped)
+    df_X_transformed = pipeline.transform(df_X_unpiped)
+    X_transformed, df_transformed = df_X_transformed.values, df_X_transformed
+    df_transformed[y_var_name] = y
+    X_unpiped = df_X_unpiped.values
+
     print('DF COLUMNS AFTER TRANSFORM: ')
     print(str(list(df.columns)))
     print()
+
+
 
     # CHOOSE MODELS FOR CONTINUOUS OR CATEGORICAL Y
     names_models = []
     print(len(y.unique()))
 
-    (continuous_features, category_features) = sort_features(df_X)
+    (continuous_features, category_features) = sort_features(df_X_transformed)
     is_continuous = (y_var_name in continuous_features)
     if is_continuous:
         print ( 'Y VARIABLE: "' + y_var_name + '" IS CONTINUOUS' )
@@ -266,6 +265,13 @@ def compare_predictions(df, y_var_name, percent_data=None,
     names = []
     seed = 7
     for name, model in tqdm.tqdm(names_models):
+
+        # TRANSFORM OR NOT
+        if model in [RidgeCV(), LinearRegression(), LassoCV(), LogisticRegression(), RidgeClassifierCV()]:
+            df, df_X, X = df_transformed, df_X_transformed, X_transformed
+        else:
+            df, df_X, X = df_unpiped, df_X_unpiped, X_unpiped
+
 
         # CROSS VALIDATE MODELS
         start = time()
@@ -386,11 +392,20 @@ def compare_predictions(df, y_var_name, percent_data=None,
         else:
             if 'predict_proba' in dir(model):
                 y_hat = model.predict_proba(df_X)
-                print(f'{name}: logloss = {np.mean((y * np.log(y_hat) + ((1 - y) * np.log(1 - y_hat)))}')
+                logloss = np.mean(y * np.log(y_hat) + ((1 - y)
+                                                       * np.log(1 - y_hat)))
+                print(f'{name}: logloss = {logloss}')
             if 'decision_function' in dir(model):
                 d = clf.decision_function(x)[0]
                 y_hat = np.exp(d) / np.sum(np.exp(d))
-                    print(f'{name}: logloss = {np.mean((y_hat-y)**2)}')
+                print(f'{name}: logloss = {np.mean((y_hat-y)**2)}')
+
+    # Plot FEATURE IMPORTANCE
+    if hasattr(model, feature_importances_):
+        feat_scores = pd.DataFrame({'Fraction of Samples Affected': model.feature_importances_},
+                                   index=df_X.columns)
+        feat_scores = feat_scores.sort_values(by='Fraction of Samples Affected')
+        feat_scores.plot(kind='barh')
 
     # --COMPARE MODELS--
     if compare_models:
