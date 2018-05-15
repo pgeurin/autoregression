@@ -58,26 +58,6 @@ def timestamp_events_to_timeseries(event_timestamp_df, event_col_name='classroom
     timeseries = timeseries.reindex(pd.date_range(min(timeseries.index), max(timeseries.index), freq='D'), fill_value=0)
 
 
-    if not num:
-        if num > 10:
-            num = 10
-    if not start:
-        start = min(events_df[time_col_name])
-    if not stop:
-        stop = max(events_df[time_col_name])
-    events_df[time_col_name] = pd.to_datetime(events_df[time_col_name], errors='coerce')
-    count_posts_per_day_df = events_df.groupby([event_col_name, time_col_name]).count()
-    min_date, max_date = start, stop
-    for i in count_posts_per_day_df.index.get_level_values(0).unique()[:num]:
-        timeseries = pd.Series(count_posts_per_day_df.loc[i][other_col_name].values,
-                                    count_posts_per_day_df.loc[i].index)
-        timeseries = timeseries.astype('float64')
-        timeseries = timeseries.reindex(pd.date_range(start, stop, freq='D'), fill_value=0)
-        if len(timeseries)>3:
-            plot_series_and_first_differences(timeseries)
-            plt.show()
-
-
 def plot_series_and_first_differences_over_bound_time(events_df, event_col_name='classroom_id', time_col_name='date', other_col_name='id', num=10, start=None, stop=None):
     if not num:
         if num > 10:
@@ -99,24 +79,24 @@ def plot_series_and_first_differences_over_bound_time(events_df, event_col_name=
             plt.show()
     return None
 
-def plot_correlations(class_1_posts_diff):
+def plot_correlations(timeseries_diff):
     # 1
-    plot_lag_correlation(class_1_posts_diff)
+    plot_lag_correlation(timeseries_diff)
     # 2
     fig, ax = plt.subplots(1, figsize=(14, 3))
-    _ = sm.graphics.tsa.plot_acf(class_1_posts_diff, lags=62, ax=ax)
+    _ = sm.graphics.tsa.plot_acf(timeseries_diff, lags=62, ax=ax)
     # 3
     fig, ax = plt.subplots(1, figsize=(16, 4))
-    _ = sm.graphics.tsa.plot_pacf(class_1_posts_diff, lags=3*52, ax=ax)
+    _ = sm.graphics.tsa.plot_pacf(timeseries_diff, lags=3*52, ax=ax)
     plt.show()
     return None
 
 
-def plot_lag_correlation(class_1_posts_diff):
+def plot_lag_correlation(timeseries_diff):
     fig, axs = plt.subplots(3, 3, figsize=(8, 8))
     for i, ax in enumerate(axs.flatten()):
-        series, lagged = series_and_lagged(class_1_posts_diff, lag=i)
-        autocorr = compute_autocorrelation(class_1_posts_diff, lag=i)
+        series, lagged = series_and_lagged(timeseries_diff, lag=i)
+        autocorr = compute_autocorrelation(timeseries_diff, lag=i)
         ax.scatter(series, lagged, alpha=0.5)
         ax.set_title("Lag {0} AC: {1:2.2f}".format(i, autocorr))
     plt.tight_layout()
@@ -148,15 +128,15 @@ def format_list_of_floats(L):
     return ["{0:2.2f}".format(f) for f in L]
 
 
-def sim_data(model, class_1_posts_diff):
+def sim_data(model, timeseries_diff):
     fig, ax = plt.subplots(4, figsize=(14, 8))
-    ax[0].plot(class_1_posts_diff.index, class_1_posts_diff)
+    ax[0].plot(timeseries_diff.index, timeseries_diff)
     ax[0].set_title("First Differences of Series Data")
     for i in range(1, 4):
         simulated_data = auto_regressive_process(
-                                    len(class_1_posts_diff),
+                                    len(timeseries_diff),
                                     list(model.params)[1:])
-        simulated_data.index = class_1_posts_diff.index
+        simulated_data.index = timeseries_diff.index
         ax[i].plot(simulated_data.index, simulated_data)
         ax[i].set_title("Simulated Data Fit")
     plt.tight_layout()
@@ -210,8 +190,9 @@ def plot_prediction(timeseries, seasonal_model):
 
 
 def make_arema_prediction(timeseries):
-    class_1_posts_diff = timeseries.diff()[1:]
-    plot_correlations(class_1_posts_diff)
+    timeseries = fill_and_float_timeseries(timeseries, freq='D')
+    timeseries_diff = timeseries.diff()[1:]
+    plot_correlations(timeseries_diff)
     model = ARIMA(timeseries, order=(3, 1, 0)).fit()
     print("ARIMA(3, 1, 0) coefficients :\n  Intercept {0:2.2f}\n  AR {1}".format(
         model.params[0],
@@ -228,21 +209,36 @@ def make_arema_prediction(timeseries):
         format_list_of_floats(list(model.params[1:]))
     ))
     plot_prediction(timeseries, seasonal_model)
-    sim_data(model, class_1_posts_diff)
+    sim_data(model, timeseries_diff)
     return model, seasonal_model
+
+
+def fill_and_float_timeseries(timeseries, freq='D'):
+    timeseries = timeseries.astype('float64')
+    return timeseries.reindex(pd.date_range(min(timeseries.index), max(timeseries.index), freq=freq), fill_value=0)
 
 
 def main():
     posts_df = pd.read_csv('../data/posts.csv')
     posts_df['date'] = pd.to_datetime(posts_df['date'], errors='coerce')
-    plot_series_and_first_differences_over_bound_time(posts_df, event_col_name='classroom_id', time_col_name='date', other_col_name='id', num=10, start=pd.to_datetime("2012"), stop=pd.to_datetime("2018"))
-
+    # plot_series_and_first_differences_over_bound_time(posts_df, event_col_name='classroom_id', time_col_name='date', other_col_name='id', num=10, start=pd.to_datetime("2014"), stop=pd.to_datetime("2018"))
+    # plot_series_and_first_differences_over_bound_time(posts_df, event_col_name='classroom_id', time_col_name='date', other_col_name='id', num=10)
+    plot_series_and_first_differences_over_bound_time(posts_df, event_col_name='classroom_id', time_col_name='date', other_col_name='id', num=10, start=pd.to_datetime("2016"), stop=pd.to_datetime("2018"))
     count_posts_per_day_df = posts_df.groupby(['classroom_id', 'date']).count()
-    timeseries = pd.Series(count_posts_per_day_df.loc[1]['id'].values,
-                                count_posts_per_day_df.loc[1].index)
-    timeseries = timeseries.astype('float64')
-    timeseries = timeseries.reindex(pd.date_range(min(timeseries.index), max(timeseries.index), freq='D'), fill_value=0)
-    # timeseries = timestamp_events_to_timeseries(event_timestamp_df, event_col_name='classroom_id', time_col_name='date', other_col_name='id')
+    first_few_classrooms = list(count_posts_per_day_df.index.get_level_values(0).unique())[:3]
+    # for classroom_id in first_few_classrooms:
+    #     print(classroom_id)
+    #     class_n_count_posts_per_day = count_posts_per_day_df.loc[classroom_id]
+    #     timeseries = pd.Series(class_n_count_posts_per_day['id'].values,
+    #                            class_n_count_posts_per_day.index)
+    #     timeseries = fill_and_float_timeseries(timeseries, freq='D')
+    #     # timeseries = timestamp_events_to_timeseries(event_timestamp_df, event_col_name='classroom_id', time_col_name='date', other_col_na
+    #     make_arema_prediction(timeseries)
+    class_1_count_posts_per_day = count_posts_per_day_df.loc[1]
+    timeseries = pd.Series(class_1_count_posts_per_day['id'].values,
+                           class_1_count_posts_per_day.index)
+    timeseries = fill_and_float_timeseries(timeseries, freq='D')
+    # timeseries = timestamp_events_to_timeseries(event_timestamp_df, event_col_name='classroom_id', time_col_name='date', other_col_na
     make_arema_prediction(timeseries)
 
 
