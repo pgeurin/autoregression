@@ -27,6 +27,13 @@ TODO:
 	O make a make test.py program
 	O add datetime identifier: what do I do with it?
 	O check standardization?
+	O add jitter
+			jitter = np.random.uniform(-.05,.05,len(df_admissions.admit))
+			jitter2 = np.random.uniform(-.05,.05,len(df_admissions.admit))
+			fig, axs = plt.subplots(3,1, figsize=(12,12))
+			axs[0].scatter(df_admissions.gpa,df_admissions.admit+jitter, s = 1)
+			axs[1].scatter(df_admissions.gre+jitter2*50,df_admissions.admit+jitter, s = 1)
+			axs[2].scatter(df_admissions["rank"]+jitter2,df_admissions.admit+jitter, s = 1)
 	X turn the vioin plots 90 deg
 	O change violinplots log on y, not x.
 	O fix nameing on violin plots
