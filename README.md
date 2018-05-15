@@ -46,6 +46,6 @@ pip install git+https://github.com/pgeurin/autoregression.git
 0.0.4 - Cleaning. AutoRegression.
 
 ## More Graphs:
-![univariate](example_plots/univariate.gif)
-![partial_dependency](example_plots/partial_dependency.gif)
-![predicteds_vs_actuals](example_plots/predicteds_vs_actuals.gif)
+![univariate](example_plots/univariate.png)
+![partial_dependency](example_plots/partial_dependency.png)
+![predicteds_vs_actuals](example_plots/predicteds_vs_actuals.png)
