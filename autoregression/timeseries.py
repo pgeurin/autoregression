@@ -218,22 +218,12 @@ def fill_and_float_timeseries(timeseries, freq='D'):
     return timeseries.reindex(pd.date_range(min(timeseries.index), max(timeseries.index), freq=freq), fill_value=0)
 
 
+
 def main():
     posts_df = pd.read_csv('../data/posts.csv')
     posts_df['date'] = pd.to_datetime(posts_df['date'], errors='coerce')
-    # plot_series_and_first_differences_over_bound_time(posts_df, event_col_name='classroom_id', time_col_name='date', other_col_name='id', num=10, start=pd.to_datetime("2014"), stop=pd.to_datetime("2018"))
-    # plot_series_and_first_differences_over_bound_time(posts_df, event_col_name='classroom_id', time_col_name='date', other_col_name='id', num=10)
-    plot_series_and_first_differences_over_bound_time(posts_df, event_col_name='classroom_id', time_col_name='date', other_col_name='id', num=10, start=pd.to_datetime("2016"), stop=pd.to_datetime("2018"))
+    plot_series_and_first_differences_over_bound_time(posts_df, event_col_name='classroom_id', time_col_name='date', other_col_name='id', num=10, start=pd.to_datetime("2012"), stop=pd.to_datetime("2018"))
     count_posts_per_day_df = posts_df.groupby(['classroom_id', 'date']).count()
-    first_few_classrooms = list(count_posts_per_day_df.index.get_level_values(0).unique())[:3]
-    # for classroom_id in first_few_classrooms:
-    #     print(classroom_id)
-    #     class_n_count_posts_per_day = count_posts_per_day_df.loc[classroom_id]
-    #     timeseries = pd.Series(class_n_count_posts_per_day['id'].values,
-    #                            class_n_count_posts_per_day.index)
-    #     timeseries = fill_and_float_timeseries(timeseries, freq='D')
-    #     # timeseries = timestamp_events_to_timeseries(event_timestamp_df, event_col_name='classroom_id', time_col_name='date', other_col_na
-    #     make_arema_prediction(timeseries)
     class_1_count_posts_per_day = count_posts_per_day_df.loc[1]
     timeseries = pd.Series(class_1_count_posts_per_day['id'].values,
                            class_1_count_posts_per_day.index)
@@ -244,3 +234,30 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# def main():
+#     posts_df = pd.read_csv('../data/posts.csv')
+#     posts_df['date'] = pd.to_datetime(posts_df['date'], errors='coerce')
+#     # plot_series_and_first_differences_over_bound_time(posts_df, event_col_name='classroom_id', time_col_name='date', other_col_name='id', num=10, start=pd.to_datetime("2014"), stop=pd.to_datetime("2018"))
+#     # plot_series_and_first_differences_over_bound_time(posts_df, event_col_name='classroom_id', time_col_name='date', other_col_name='id', num=10)
+#     plot_series_and_first_differences_over_bound_time(posts_df, event_col_name='classroom_id', time_col_name='date', other_col_name='id', num=10, start=pd.to_datetime("2012"), stop=pd.to_datetime("2018"))
+#     count_posts_per_day_df = posts_df.groupby(['classroom_id', 'date']).count()
+#     first_few_classrooms = list(count_posts_per_day_df.index.get_level_values(0).unique())[:3]
+#     # for classroom_id in first_few_classrooms:
+#     #     print(classroom_id)
+#     #     class_n_count_posts_per_day = count_posts_per_day_df.loc[classroom_id]
+#     #     timeseries = pd.Series(class_n_count_posts_per_day['id'].values,
+#     #                            class_n_count_posts_per_day.index)
+#     #     timeseries = fill_and_float_timeseries(timeseries, freq='D')
+#     #     # timeseries = timestamp_events_to_timeseries(event_timestamp_df, event_col_name='classroom_id', time_col_name='date', other_col_na
+#     #     make_arema_prediction(timeseries)
+#     class_1_count_posts_per_day = count_posts_per_day_df.loc[1]
+#     timeseries = pd.Series(class_1_count_posts_per_day['id'].values,
+#                            class_1_count_posts_per_day.index)
+#     timeseries = fill_and_float_timeseries(timeseries, freq='D')
+#     # timeseries = timestamp_events_to_timeseries(event_timestamp_df, event_col_name='classroom_id', time_col_name='date', other_col_na
+#     make_arema_prediction(timeseries)
+#
+#
+# if __name__ == "__main__":
+#     main()
