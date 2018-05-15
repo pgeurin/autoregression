@@ -16,10 +16,10 @@ Use pattern matplotlib 'fig, ax = subplots(1,1)' for best effect.
 Graphs without an 'ax' input plot themselves.
 
 The code used here HEAVILY relies upon the foundational work of Matt Drury.
-This project just wouldn't be the same without it.
-Pandas and matplotlib. are also foundational tools to the work.
+This project just wouldn't exist without it.
+This work is only possible because of the developers of matplotlib, pandas and Numpy.
 
-![iris_autoregression](example_plots/iris_autoregression_02.gif)
+![iris_autoregression](example_plots/iris_autoregression_02_fast.gif)
 
 ## Cleandata
 Cleans pandas dataframes using modern machine learning practices.
@@ -29,6 +29,16 @@ It detects all manner of unmentionable values and replaces them with the mean or
 distinguishing feature.
 
 ![Box and Violin](example_plots/box_and_violin.png)
+
+## Timeseries
+Forcasts using ARIMA modeling techinques.
+
+Turn first to make_arema_prediction(). It will take care of you. 
+If your data is a event-timestamp, rather than an event series, convert your data with timestamp_events_to_timeseries().
+
+![forcast](example_plots/forcast.png)
+![forcast](example_plots/autocorrelation_long.png)
+
 
 ## Installation
 

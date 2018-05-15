@@ -1,0 +1,43 @@
+Linear Regression Brain dump
+
+
+
+so whats the problem here:
+
+
+i can't keep my testing envirmeonts straight.
+
+why?
+I keep gettting confused what's calling what in notebooks, and what I was working on specifically.
+
+I get lost in my code.
+
+sS what do I need to do?
+
+1) Test make_linear_graphs by itself. On clean data?
+
+2) OR go grab copies of the other work.
+
+3) Find a way to make similar environments
+
+	A) Make the ridge/linear_maker consistant
+
+	B) Make a totally fresh jupyter testing environment. (That's somehow similar???)
+
+	C) make a universally consistant tester???
+
+PROBLEM:
+	EACH REGRESSION NEEDS TO RETURN A PIPELINE OR NOT
+	LINEAR REGRESSION NEEDS TO RETURN A PIPELINE THAT REMOVES ALL CONT. VARIABLES *OR* I need to find another method. 
+
+	IS K FOLDS RIDGE TOO CONFUSING BY MAKING A PIPELINE??? I dont THINK so? hard to say at this point. 
+
+	Because each method uses different cleaning methods, they should just intake df_test (which is df_X_test, in this current case) 
+
+	interesting, there are different senarios. Sometimes the X_test is given, sometimes it isn't. 
+	We can do a Kfold, which is, in many ways, more effective, but somehow not proving enough for me right now. 
+	so the ideal here, then is to make the option to add a separate X_test and/or Y_test. AND if not to automatically make the test and compare it.
+	And then have it output the trainings residuals 
+
+
+

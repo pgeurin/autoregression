@@ -538,9 +538,14 @@ def plot_rocs(models, df_X, y, pipeline=None):
     if pipeline:
         df_X=pipeline.transform(df_X)
     fig, ax=plt.subplots(1, 1, figsize=(10, 10))
+
     for model in models:
         # pipeline intentionally tranformed before inserting df_X, pipeline should not be passed!
-        plot_roc(ax, model, df_X, y, pipeline=None)
+        if 'predict_proba' in dir(model):
+            plot_roc(ax, model, df_X, y, pipeline=None)
+        # one day use on RidgeCV:
+        # d = clf.decision_function(x)[0]
+        # probs = np.exp(d) / np.sum(np.exp(d))
 
 def plot_box_and_violins(names, scoring, results):
     """ Plots two violin plots and box plots for comparison.
@@ -558,22 +563,22 @@ def plot_box_and_violins(names, scoring, results):
     ax[0].set_ylabel(f'{scoring}')
 
     # BOX PLOTS
-    ax[0].boxplot(results, vert=False)
+    ax[0].boxplot(results, vert=True)
     ax[0].set_yticklabels(names)
 
     # VIOLIN PLOTS
-    ax[1].violinplot(results, vert=False)
+    ax[1].violinplot(results, vert=True)
     ax[1].set_yticklabels(names)
 
     # BOX PLOTS OF -LOG(ERROR)
-    ax[2].boxplot(results, vert=False)
+    ax[2].boxplot(results, vert=True)
     ax[2].set_yticklabels(names)
     ax[2].set_xlabel(f'{scoring}')
     ax[2].set_xscale('log')
     ax[2].get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
 
     # VIOLIN PLOTS OF -LOG(ERROR)
-    ax[3].violinplot(results, vert=False)
+    ax[3].violinplot(results, vert=True)
     ax[3].set_yticklabels(names)
     ax[3].set_xlabel(f'-{scoring}')
     ax[3].set_xscale('log')

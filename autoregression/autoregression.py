@@ -104,7 +104,7 @@ def is_equal(level):
     def print_equals(var):
         # print('the var is ' + str(var))
         # print('the var is ' + str(level))
-        return var==level
+        return var == level
     return print_equals
 
 def simple_category_specification(var_name, levels):
@@ -142,9 +142,20 @@ def timeit(func, *args):
 
 
 def compare_predictions(df, y_var_name, percent_data=None,
-                        category_limit=11, knots=3, bootstrap_coefs=True,
+                        category_limit=11, knots=3, corr_matrix=True,
+                        scatter_matrix=True, bootstrap_coefs=True,
                         partial_dep=True, actual_vs_predicted=True,
-                        residuals=True, univariates=True, bootstraps=10):
+                        residuals=True, univariates=True, compare_models=True,
+                        ROC=True, bootstraps=10):
+    """Takes dataframe
+        INPUT:
+            name:
+                string, a feature name to spline
+            knots:
+                int, number knots (divisions) which are divisions between splines.
+        OUTPUT:
+            pipeline
+    """
     df = cleandata.rename_columns(df)
     y_var_name = stringcase.snakecase(y_var_name).replace('__', '_')
     start = time()
@@ -174,21 +185,23 @@ def compare_predictions(df, y_var_name, percent_data=None,
 
 
     # SHOW CORRELATION MATRIX
-    if len(df) < 300:
-        sample_limit = len(df)
-    else:
-        sample_limit = 300
-    start = time()
-    plt.matshow(df.sample(sample_limit).corr())
-    plt.show()
-    print(f'PLOT CORRELATION TIME: {time() - start}')
+    if corr_matrix:
+        if len(df) < 300:
+            sample_limit = len(df)
+        else:
+            sample_limit = 300
+        start = time()
+        plt.matshow(df.sample(sample_limit).corr())
+        plt.show()
+        print(f'PLOT CORRELATION TIME: {time() - start}')
 
     # MAKE SCATTER MATRIX
-    start = time()
-    galgraphs.plot_scatter_matrix(df, y_var_name)
-    plt.show()
-    print(f'MAKE SCATTER TIME: {time() - start}')
-    print()
+    if scatter_matrix:
+        start = time()
+        galgraphs.plot_scatter_matrix(df, y_var_name)
+        plt.show()
+        print(f'MAKE SCATTER TIME: {time() - start}')
+        print()
 
 
     print('DF COLUMNS: ')
@@ -235,8 +248,9 @@ def compare_predictions(df, y_var_name, percent_data=None,
         print ( 'Y VARIABLE: "' + y_var_name + '" IS CATEGORICAL' )
         print()
         names_models.append(('LR', LogisticRegression()))
+        names_models.append(('LASSOish', LogisticRegression(penalty='l1')))
         names_models.append(('LDA', LinearDiscriminantAnalysis()))
-        names_models.append(('LC', RidgeClassifierCV(alphas=alphas)))
+        names_models.append(('RR', RidgeClassifierCV(alphas=alphas)))
         names_models.append(('KNN', KNeighborsClassifier()))
         names_models.append(('DT', DecisionTreeClassifier()))
         # names_models.append(('NB', GaussianNB()))
@@ -328,7 +342,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
             # plot_partial_dependences(model, X=df_unpiped.drop(y_var_name, axis=1), var_names=columns_unpiped, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
             # galgraphs.plot_partial_dependences(model, X=df_unpiped.drop(y_var_name, axis=1), var_names=columns_unpiped, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
             plt.show()
-            print(f'PLOT CONTINOUS PARTIAL DEPENDENCIES TIME: {time() - start}')
+            print(f'PLOT CONTINUOUS PARTIAL DEPENDENCIES TIME: {time() - start}')
             start = time()
             hot_categorical_vars = [column for column in df.columns if (len(df[column].unique()) == 2)]
             # galgraphs.shaped_plot_partial_dependences(model, df[[y_var_name]+hot_categorical_vars], y_var_name)
@@ -360,34 +374,47 @@ def compare_predictions(df, y_var_name, percent_data=None,
 
                     print(f'PLOT RESIDUAL ERROR TIME: {time() - start}')
                 else:
-                    print ('len(y) != len(y_hat), so no regressions included' )
+                    print('len(y) != len(y_hat), so no regressions included' )
             else:
-                print( 'No y, so no regressions included')
+                print('No y, so no regressions included')
 
-        #Fit MODELS
         df_X = df.drop(y_var_name, axis=1)
-        y_hat = model.predict(df_X)
 
-        # get logloss later
-        print(f'{name}: MSE = {np.mean((y_hat-y)**2)}')
+        # GET ERROR
+        if is_continuous:
+            y_hat = model.predict(df_X)
+            print(f'{name}: MSE = {np.mean((y_hat-y)**2)}')
+        else:
+            if 'predict_proba' in dir(model):
+                y_hat = model.predict_proba(df_X)
+                logloss = np.mean( y * np.log(y_hat) + (1 - y) * np.log(1 - y_hat))
+                print(f'{name}: logloss = {logloss}')
+            if 'decision_function' in dir(model):
+                d = clf.decision_function(x)[0]
+                y_hat = np.exp(d) / np.sum(np.exp(d))
+                print(f'{name}: logloss = {np.mean((y_hat-y)**2)}')
 
     # --COMPARE MODELS--
-    start = time()
-    if is_continuous:
-        negresults = []
-        for i, result in enumerate(results):
-            negresults.append(-1*result)
-        galgraphs.plot_box_and_violins(names, scoring, negresults)
-    else:
-        galgraphs.plot_box_and_violins(names, scoring, results)
-    plt.show()
-    print(f'PLOT BAR AND VIOLIN TIME: {time() - start}')
-    # ROC CURVE
-    if not is_continuous:
+    if compare_models:
         start = time()
-        galgraphs.plot_rocs(models, df_X, y)
+        if is_continuous:
+            negresults = []
+            for i, result in enumerate(results):
+                negresults.append(-1*result)
+            galgraphs.plot_box_and_violins(names, scoring, negresults)
+        else:
+            galgraphs.plot_box_and_violins(names, scoring, results)
         plt.show()
-        print(f'PLOT ROC TIME: {time() - start}')
+        print(f'PLOT BAR AND VIOLIN TIME: {time() - start}')
+
+    # ROC CURVE
+    if ROC:
+        if not is_continuous:
+            start = time()
+            galgraphs.plot_rocs(models, df_X, y)
+            plt.show()
+            print(f'PLOT ROC TIME: {time() - start}')
+
     return names, results, models, pipeline
 
 def bootstrap_train_premade(model, X, y, bootstraps=1000, **kwargs):
