@@ -206,7 +206,8 @@ def plot_predicted_vs_actuals(df, model, y_var_name, sample_limit):
             dataframe:
                 dataframe of floats or invts
             model:
-                a pre-fit model with a predict method
+                A sklearn model with a predict method
+                Call fit() on model before using plot_feature_importances.
             y_var_name:
                 string, the column name of the dependent y variable in the dataframe
             y_hat:
@@ -254,6 +255,29 @@ def plot_coefs(coefs, columns, graph_name):
     plt.ylim(min(y_pos) - 1, max(y_pos) + 1)
     ax.set_title('Standardized Coefficents of ' + graph_name)
 
+def plot_feature_importances(model, df_X):
+    """Plots the feature importances in fit models
+    Warning: Avoid comparing continuous and non-continuous features.
+    Feature importance is proporational to number of possible splits.
+    INPUT:
+        model:
+            A fit sklean object with a `coef_` attribute.
+            Call fit() on model before using plot_feature_importances.
+        df_X:
+            dataframe of floats, the independent variables.
+            must have same features to the df_X's put into the model.
+    OUTPUT:
+        A plot showing the feature importances of the model.
+    """
+    if 'feature_importances_' in dir(model):
+        feat_scores = pd.DataFrame({'Fraction of Samples Affected': model.feature_importances_},
+                               index=df_X.columns)
+        feat_scores = feat_scores.sort_values(by='Fraction of Samples Affected')
+        feat_scores.plot(kind='barh', figsize=(10,len(feat_scores) * 0.3))
+    else:
+        raise ValueError(f"Model: {model} doesn't have feature_importances_, unable to plot")
+    return None
+
 def plot_residual(ax, x, y, y_hat, n_bins=50, s=3):
     """ Plots all the residuals from y and 'y_hat' across x
         INPUT:
@@ -267,7 +291,6 @@ def plot_residual(ax, x, y, y_hat, n_bins=50, s=3):
                 a array of y values you predicted from x to be compared with the values of y
         OUTPUT:
             A plot showing the residuals across x (error)
-            :type y: object
     """
     residuals=np.abs(y.astype(int) - y_hat)
     ax.axhline(0, color="black", linestyle="--")
@@ -377,7 +400,8 @@ def gal_display_coef(coefs, coef_names):
 
     Parameters
     ----------
-    model: A fit sklean object with a `coef_` attribute.
+    coeffs:
+        suggested from a model.fit() sklearn object with a `coef_` attribute.
 
     coef_names: A list of names associated with the coefficients.
     """
@@ -392,7 +416,8 @@ def shaped_plot_partial_dependences(model, df, y_var_name, pipeline=None,
     """Creates many partial dependency plots.
         INPUT:
             model:
-                A sklearn model, already fit.
+                A sklearn model
+                Call fit() on model before using plot_feature_importances.
             df:
                 A dataframe containing independent variables y
                 and dependent variables X.
@@ -452,7 +477,8 @@ def plot_partial_dependences(model, X, var_names, y=None, bootstrap_models=None,
     """Creates many partial dependency plots.
         INPUT:
             model:
-                A sklearn model, already fit.
+                A sklearn model
+                Call fit() on model before using plot_feature_importances.
             X:
                 A dataframe or array containing independent variables
                 that fit in pipeline.
@@ -492,7 +518,8 @@ def plot_roc(ax, model, df_X, y, pipeline=None):
             ax:
                 plot_solution_paths plots on this axis
             model:
-                a pre-fit model with a predict method
+                A sklearn model witha predict method
+                Call fit() on model before using plot_feature_importances.
             df_X:
                 dataframe of floats, the independent variables.
             y:

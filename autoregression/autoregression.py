@@ -144,6 +144,7 @@ def timeit(func, *args):
 def compare_predictions(df, y_var_name, percent_data=None,
                         category_limit=11, knots=3, corr_matrix=True,
                         scatter_matrix=True, bootstrap_coefs=True,
+                        feature_importances=True,
                         partial_dep=True, actual_vs_predicted=True,
                         residuals=True, univariates=True, compare_models=True,
                         ROC=True, bootstraps=10):
@@ -167,7 +168,6 @@ def compare_predictions(df, y_var_name, percent_data=None,
     else:
         df = df.sample(frac=percent_data)
     print(f'MAKE SUBSAMPLE TIME: {time() - start}')
-
     start = time()
     df = cleandata.clean_df(df, y_var_name)
     print(f'CLEAN_DF TIME: {time()-start}')
@@ -175,7 +175,8 @@ def compare_predictions(df, y_var_name, percent_data=None,
     # REMEMBER OLD DATAFRAME
 
     df_unpiped = df.copy()
-    (unpiped_continuous_features, unpiped_category_features) = sort_features(df_unpiped.drop(y_var_name, axis=1))
+    df_X_unpiped = df_unpiped.drop(y_var_name, axis=1)
+    (unpiped_continuous_features, unpiped_category_features) = sort_features(df_X_unpiped)
     columns_unpiped = df.columns
     columns_unpiped = list(columns_unpiped)
     columns_unpiped.remove(y_var_name)
@@ -268,6 +269,8 @@ def compare_predictions(df, y_var_name, percent_data=None,
     seed = 7
     for name, model in tqdm.tqdm(names_models):
 
+        #if not linear: change df_X to df_X unpiped
+
         # CROSS VALIDATE MODELS
         start = time()
         kfold = model_selection.KFold(n_splits=10, random_state=seed)
@@ -311,7 +314,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
         if bootstrap_coefs or partial_dep:
             bootstrap_models = bootstrap_train_premade(model, X, y, bootstraps=bootstraps, fit_intercept=False)
 
-        #PLOT COEFFICIANTS
+        # PLOT COEFFICIANTS
 
         if hasattr(model, "coef_"):
             start = time()
@@ -323,22 +326,28 @@ def compare_predictions(df, y_var_name, percent_data=None,
             galgraphs.plot_coefs(coefs=coefs, columns=columns, graph_name=name)
             plt.show()
 
-            print(f'PLOT COEFFICIANTS TIME: {time() - start}')
-
+        # PLOT BOOTSTRAP COEFFICIANTS
             if is_continuous:
                 if bootstrap_coefs:
+                    print(f'PLOT COEFFICIANTS TIME: {time() - start}')
                     # PLOT BOOTSTRAP COEFS
                     start = time()
                     fig, axs = plot_bootstrap_coefs(bootstrap_models, df_X.columns, n_col=4)
                     fig.tight_layout()
                     plt.show()
+                    print(f'PLOT BOOTSTRAP COEFFICIANTS TIME: {time() - start}')
 
-                print(f'PLOT BOOTSTRAP COEFFICIANTS TIME: {time() - start}')
+        # PLOT FEATURE IMPORTANCES
+        if feature_importances:
+            if 'feature_importances_' in dir(model):
+                start = time()
+                galgraphs.plot_feature_importances(model, df_X)
+                print(f'PLOT FEATURE IMPORTANCES TIME: {time() - start}')
 
         # PLOT PARTIAL DEPENDENCIES
         if partial_dep:
             start = time()
-            plot_partial_dependences(model, X=df_unpiped.drop(y_var_name, axis=1), var_names=unpiped_continuous_features, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
+            plot_partial_dependences(model, X=df_X_unpiped, var_names=unpiped_continuous_features, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
             # plot_partial_dependences(model, X=df_unpiped.drop(y_var_name, axis=1), var_names=columns_unpiped, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
             # galgraphs.plot_partial_dependences(model, X=df_unpiped.drop(y_var_name, axis=1), var_names=columns_unpiped, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
             plt.show()
