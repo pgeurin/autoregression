@@ -35,7 +35,7 @@ Turn first to make_arema_prediction(). It will take care of you.
 If your data is a event-timestamp, rather than an event series, convert your data with timestamp_events_to_timeseries().
 
 ![forcast](example_plots/forcast.png)
-![forcast](example_plots/autocorrelation-long.png)
+![forcast](example_plots/autocorrelation_long.png)
 
 
 ## Installation
