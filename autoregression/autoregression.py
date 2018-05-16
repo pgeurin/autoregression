@@ -342,6 +342,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
             if 'feature_importances_' in dir(model):
                 start = time()
                 galgraphs.plot_feature_importances(model, df_X)
+                plt.show()
                 print(f'PLOT FEATURE IMPORTANCES TIME: {time() - start}')
 
         # PLOT PARTIAL DEPENDENCIES
