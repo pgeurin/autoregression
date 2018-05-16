@@ -396,8 +396,6 @@ def compare_predictions(df, y_var_name, percent_data=None,
         else:
             if 'predict_proba' in dir(model):
                 y_hat = model.predict_proba(df_X)[:,0]
-                print(y_hat)
-                print(y)
                 logloss = np.mean(y * np.log(y_hat) + (1 - y) * np.log(1 - y_hat))
                 print(f'{name}: logloss = {logloss}')
             if 'decision_function' in dir(model):
@@ -426,7 +424,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
             plt.show()
             print(f'PLOT ROC TIME: {time() - start}')
 
-    return names, results, models, pipeline
+    return names, results, models, pipeline, df_X
 
 def bootstrap_train_premade(model, X, y, bootstraps=1000, **kwargs):
     """Train a (linear) model on multiple bootstrap samples of some data and
