@@ -89,6 +89,19 @@ def one_dim_scatterplot(ax, data, jitter=0.2, **options):
     ax.yaxis.set_ticklabels([])
     ax.set_ylim([-1, 1])
 
+def plot_one_scatter_matrix(plot_sample_df):
+    scatter_matrix = pd.plotting.scatter_matrix(
+        plot_sample_df,
+        figsize=((len(plot_sample_df) * .07, len(plot_sample_df) * .07)),
+        marker = ".",
+        alpha = .5,
+        s = 50,
+        diagonal = "kde"
+    )
+    for ax in scatter_matrix.ravel():
+        ax.set_xlabel(ax.get_xlabel(), fontsize = 20, rotation = 90)
+        ax.set_ylabel(ax.get_ylabel(), fontsize = 20, rotation = 0)
+    return None
 
 def plot_scatter_matrix(df, y_var_name=None):
     """ plots a series of scatter matrix of the continuous variables
@@ -122,22 +135,11 @@ def plot_scatter_matrix(df, y_var_name=None):
 
         # pd.plotting.scatter_matrix(plot_sample_df, figsize=(len(plot_sample_df) * .07,
         #                                            len(plot_sample_df) * .07))
-        scatter_matrix = pd.plotting.scatter_matrix(
-            plot_sample_df,
-            figsize=((len(plot_sample_df) * .07, len(plot_sample_df) * .07)),
-            marker = ".",
-            alpha = .5,
-            s = 10,
-            diagonal = "kde"
-        )
-        for ax in scatter_matrix.ravel():
-            ax.set_xlabel(ax.get_xlabel(), fontsize = 20, rotation = 90)
-            ax.set_ylabel(ax.get_ylabel(), fontsize = 20, rotation = 0)
-                plt.show()
-                continuous_features= continuous_features[5:]
+        plot_one_scatter_matrix(plot_sample_df)
+        plt.show()
+        continuous_features= continuous_features[5:]
     plot_sample_df = df[[y_var_name] + continuous_features].sample(n=sample_limit)
-    pd.plotting.scatter_matrix(plot_sample_df, figsize=(len(plot_sample_df) * .1,
-                                           len(plot_sample_df) * .1))
+    plot_one_scatter_matrix(plot_sample_df)
 
 def plot_one_univariate(ax, df, x_var_name, y_var_name, mask=None):
     """ A linear spline regression of two columns in the dataframe.
