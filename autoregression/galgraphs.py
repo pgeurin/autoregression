@@ -120,13 +120,24 @@ def plot_scatter_matrix(df, y_var_name=None):
         else:
             plot_sample_df = df[continuous_features[:6]].sample(n=sample_limit)
 
-        pd.plotting.scatter_matrix(plot_sample_df, figsize=(len(plot_sample_df) * .07,
-                                                   len(plot_sample_df) * .07))
-        plt.show()
-        continuous_features= continuous_features[5:]
+        # pd.plotting.scatter_matrix(plot_sample_df, figsize=(len(plot_sample_df) * .07,
+        #                                            len(plot_sample_df) * .07))
+        scatter_matrix = pd.plotting.scatter_matrix(
+            plot_sample_df,
+            figsize=((len(plot_sample_df) * .07, len(plot_sample_df) * .07)),
+            marker = ".",
+            alpha = .5,
+            s = 10,
+            diagonal = "kde"
+        )
+        for ax in scatter_matrix.ravel():
+            ax.set_xlabel(ax.get_xlabel(), fontsize = 20, rotation = 90)
+            ax.set_ylabel(ax.get_ylabel(), fontsize = 20, rotation = 0)
+                plt.show()
+                continuous_features= continuous_features[5:]
     plot_sample_df = df[[y_var_name] + continuous_features].sample(n=sample_limit)
     pd.plotting.scatter_matrix(plot_sample_df, figsize=(len(plot_sample_df) * .1,
-                                               len(plot_sample_df) * .1))
+                                           len(plot_sample_df) * .1))
 
 def plot_one_univariate(ax, df, x_var_name, y_var_name, mask=None):
     """ A linear spline regression of two columns in the dataframe.
@@ -469,7 +480,7 @@ def shaped_plot_partial_dependences(model, df, y_var_name, pipeline=None,
                           model.__class__.__name__)
 #             fig.set_tight_layout(tight = True) #this doesn't work!!!
             # 'tight_layout' must be used in calling script as well
-            fig.tight_layout(pad=2)
+        fig.tight_layout(pad=2)
     else:
         print('No Features to Plot')
 
@@ -510,6 +521,7 @@ def plot_partial_dependences(model, X, var_names, y=None, bootstrap_models=None,
         plot_partial_depenence(ax, model, X=X, var_name=name,
                                y=y, pipeline=pipeline, color="blue", linewidth=3)
         ax.set_title("{} Partial Dependence".format(name))
+    fig.tight_layout()
     return fig, axs
 
 def plot_roc(ax, model, df_X, y, pipeline=None):
