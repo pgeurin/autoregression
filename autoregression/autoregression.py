@@ -157,6 +157,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
         OUTPUT:
             pipeline
     """
+    starttotal = time()
     df = cleandata.rename_columns(df)
     y_var_name = stringcase.snakecase(y_var_name).replace('__', '_')
     start = time()
@@ -349,6 +350,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
         if partial_dep:
             start = time()
             plot_partial_dependences(model, X=df_X_unpiped, var_names=unpiped_continuous_features, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
+            plt.tight_layout()
             # plot_partial_dependences(model, X=df_unpiped.drop(y_var_name, axis=1), var_names=columns_unpiped, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
             # galgraphs.plot_partial_dependences(model, X=df_unpiped.drop(y_var_name, axis=1), var_names=columns_unpiped, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
             plt.show()
@@ -424,6 +426,8 @@ def compare_predictions(df, y_var_name, percent_data=None,
             galgraphs.plot_rocs(models, df_X, y)
             plt.show()
             print(f'PLOT ROC TIME: {time() - start}')
+
+    print(f'MAKE SUBSAMPLE TIME: {time() - starttotal}')
 
     return names, results, models, pipeline, df_X
 
