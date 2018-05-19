@@ -43,10 +43,9 @@ from regression_tools.dftransformers import (
 # import warnings
 # warnings.filterwarnings('ignore')
 import stringcase
-import galgraphs
-import cleandata
 from autoregression import cleandata
-from autoregression.galgraphs import (simple_spline_specification,
+from autoregression import galgraphs
+from galgraphs import (simple_spline_specification,
                                       choose_box_and_violin_plots,
                                       plot_many_univariates,
                                       plot_scatter_matrix,
