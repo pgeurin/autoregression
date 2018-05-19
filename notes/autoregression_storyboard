@@ -27,6 +27,7 @@ TODO:
 	O make a make test.py program
 	O add datetime identifier: what do I do with it?
 	O check standardization?
+	O get subsample, THEN clean
 	O add jitter
 			jitter = np.random.uniform(-.05,.05,len(df_admissions.admit))
 			jitter2 = np.random.uniform(-.05,.05,len(df_admissions.admit))
