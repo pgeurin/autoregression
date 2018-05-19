@@ -189,7 +189,6 @@ def plot_many_univariates(df, y_var_name):
             A linear regression, with light blue bootstrapped lines showing the instability of the regression
     """
     (continuous_features, category_features) = autoregression.sort_features(df)
-    print(continuous_features)
     continuous_features_greater_two = list(filter(lambda x: len(df[x].unique()) > 2, continuous_features))
     if len(continuous_features_greater_two) > 1:
         num_plot_rows=int(np.ceil(len(continuous_features_greater_two) / 2.0))

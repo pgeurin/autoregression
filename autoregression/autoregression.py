@@ -136,9 +136,10 @@ def simple_category_specification(var_name, levels):
 
 
 def timeit(func, *args):
+    print(f'Running: {func.__name__.upper()} ...')
     start = time()
-    answers = func(args)
-    print(f'{str(func.__name__).upper()} TIME: {time() - start}')
+    answers = func(*args)
+    print(f'{func.__name__.upper()} TIME: {time() - start}')
     return answers
 
 
@@ -238,12 +239,8 @@ def compare_predictions(df, y_var_name, percent_data=None,
     starttotal = time()
     df = cleandata.rename_columns(df)
     y_var_name = stringcase.snakecase(y_var_name).replace('__', '_').replace('__', '_')
-    start = time()
-    df = take_subsample(df, percent_data)
-    print(f'MAKE SUBSAMPLE TIME: {time() - start}')
-    start = time()
-    df = cleandata.clean_df(df, y_var_name)
-    print(f'CLEAN_DF TIME: {time()-start}')
+    df = timeit(take_subsample, df, percent_data)
+    df = timeit(cleandata.clean_df, df, y_var_name)
     sample_limit = make_sample_limit(df)
 
     # REMEMBER OLD DATAFRAME
@@ -260,29 +257,19 @@ def compare_predictions(df, y_var_name, percent_data=None,
 
     # SHOW CORRELATION MATRIX
     if corr_matrix:
-        start = time()
-        plt.matshow(df.sample(sample_limit).corr())
-        print(f'PLOT CORRELATION TIME: {time() - start}')
+        timeit(plt.matshow, df.sample(sample_limit).corr())
 
     # MAKE SCATTER MATRIX
     if scatter_matrix:
-        start = time()
-        galgraphs.plot_scatter_matrix(df, y_var_name)
+        timeit(galgraphs.plot_scatter_matrix, df, y_var_name)
         plt.show()
-        print(f'MAKE SCATTER TIME: {time() - start}')
-        print()
-
 
     # TRANSFORM DATAFRAME
-    print('DF COLUMNS: ')
-    print(str(list(df.columns)))
-    print()
+    print('DF COLUMNS: \n' + str(list(df.columns)) + '\n')
     df, df_X, X, y, pipeline = use_spline(df, y_var_name)
-    print('DF COLUMNS AFTER TRANSFORM: ')
-    print(str(list(df.columns)))
-    print()
+    print('DF COLUMNS AFTER TRANSFORM: \n' + str(list(df.columns)) + '\n')
 
-
+    #MAKE MODELS
     (names_models, continuous_features, category_features, models, scoring, is_continuous) = make_models(df, df_X, y, y_var_name, univariates)
 
     # evaluate each model in turn
@@ -378,13 +365,12 @@ def compare_predictions(df, y_var_name, percent_data=None,
             plt.show()
             print(f'PLOT CONTINUOUS PARTIAL DEPENDENCIES TIME: {time() - start}')
             start = time()
-            hot_categorical_vars = [column for column in df.columns if (len(df[column].unique()) == 2)]
+            # hot_categorical_vars = [column for column in df.columns if (len(df[column].unique()) == 2)]
             # galgraphs.shaped_plot_partial_dependences(model, df[[y_var_name]+hot_categorical_vars], y_var_name)
             plt.show()
             print(f'PLOT CATEGORICAL PARTIAL DEPENDENCIES TIME: {time() - start}')
 
         # PLOT PREDICTED VS ACTUALS
-
         df_X_sample = df.sample(sample_limit).drop(y_var_name, axis=1)
         y_hat_sample = model.predict(df_X_sample)
         if is_continuous:
