@@ -3,7 +3,9 @@
 Clean, graph, and model your data in one command.
 
 Automatically assess and test multiple working
-machine learning techniques.  
+machine learning techniques. 
+
+autoregression.compare_predictions(df, 'y_var')
 
 Included are two extra modules:
 
