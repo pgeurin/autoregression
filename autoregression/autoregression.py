@@ -248,9 +248,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
     df_unpiped = df.copy()
     df_X_unpiped = df_unpiped.drop(y_var_name, axis=1)
     (unpiped_continuous_features, unpiped_category_features) = sort_features(df_X_unpiped)
-    columns_unpiped = df.columns
-    columns_unpiped = list(columns_unpiped)
-    columns_unpiped.remove(y_var_name)
+    columns_unpiped = df_X_unpiped.columns
 
     # REMOVE CATEGORICAL VARIABLES THAT HAVE TOO MANY CATEGORIES TO BE USEFUL
     df = cleandata.drop_category_exeeding_limit(df, y_var_name, category_limit)
@@ -376,12 +374,10 @@ def compare_predictions(df, y_var_name, percent_data=None,
                         # add feature to jitter plot to categorical features
                         # add cdf???
                     if residuals:
-                        start = time()
-                        fig, ax = plt.subplots()
-                        galgraphs.plot_residual_error(ax, df_X_sample.values[:,0].reshape(-1), y.reshape(-1), y_hat_sample.reshape(-1), s=30);
-                        plt.show()
 
-                    print(f'PLOT RESIDUAL ERROR TIME: {time() - start}')
+                        fig, ax = plt.subplots()
+                        timeit(galgraphs.plot_residual_error, ax, df_X_sample.values[:,0].reshape(-1), y.reshape(-1), y_hat_sample.reshape(-1), s=30)
+                        plt.show()
                 else:
                     print('len(y) != len(y_hat), so no regressions included' )
             else:
@@ -405,24 +401,20 @@ def compare_predictions(df, y_var_name, percent_data=None,
 
     # --COMPARE MODELS--
     if compare_models:
-        start = time()
         if is_continuous:
             negresults = []
             for i, result in enumerate(results):
                 negresults.append(-1*result)
-            galgraphs.plot_box_and_violins(names, scoring, negresults)
+            timeit(galgraphs.plot_box_and_violins, names, scoring, negresults)
         else:
-            galgraphs.plot_box_and_violins(names, scoring, results)
+            timeit(galgraphs.plot_box_and_violins, names, scoring, results)
         plt.show()
-        print(f'PLOT BAR AND VIOLIN TIME: {time() - start}')
 
     # ROC CURVE
     if ROC:
         if not is_continuous:
-            start = time()
-            galgraphs.plot_rocs(models, df_X, y)
+            timeit(galgraphs.plot_rocs, models, df_X, y)
             plt.show()
-            print(f'PLOT ROC TIME: {time() - start}')
 
     print(f'MAKE SUBSAMPLE TIME: {time() - starttotal}')
 
