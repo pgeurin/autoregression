@@ -45,19 +45,19 @@ from regression_tools.dftransformers import (
 import stringcase
 from autoregression import cleandata
 from autoregression import galgraphs
-from galgraphs import (simple_spline_specification,
-                                      choose_box_and_violin_plots,
-                                      plot_many_univariates,
-                                      plot_scatter_matrix,
-                                      plot_solution_paths,
-                                      plot_predicted_vs_actuals,
-                                      plot_coefs,
-                                      # plot_partial_dependences
-                                      plot_feature_importances,
-                                      plot_many_predicteds_vs_actuals,
-                                      plot_residual_error,
-                                      plot_box_and_violins,
-                                      plot_rocs)
+from galgraphs import (sort_features,
+                       simple_spline_specification,
+                       plot_many_univariates,
+                       plot_scatter_matrix,
+                       plot_solution_paths,
+                       plot_predicted_vs_actuals,
+                       plot_coefs,
+                       # plot_partial_dependences
+                       plot_feature_importances,
+                       plot_many_predicteds_vs_actuals,
+                       plot_residual_error,
+                       plot_box_and_violins,
+                       plot_rocs)
 import os
 import tqdm
 from time import time
@@ -66,18 +66,17 @@ import sys
 plt.style.use('ggplot')
 
 
-def sort_features(df):
-    """Takes a dataframe, returns lists of continuous and category (category) features
-    INPUT: dataframe
-    OUTPUT: two lists of continuous and category features"""
-    continuous_features = []
-    category_features = []
-    for type, feature in zip(df.dtypes, df.dtypes.index):
-        if type == np.dtype('int') or type == np.dtype('float'):
-            continuous_features.append(feature)
-        if type == np.dtype('O') or type == np.dtype('<U') or type == np.dtype('bool'):
-            category_features.append(feature)
-    return (continuous_features, category_features)
+def choose_box_and_violin_plots(names, scoring, compare_models, results):
+    if is_continuous:
+        negresults = []
+        for i, result in enumerate(results):
+            negresults.append(-1*result)
+        timeit(plot_box_and_violins, names, scoring, negresults)
+    else:
+        timeit(plot_box_and_violins, names, scoring, results)
+    plt.show()
+    return None
+
 
 def auto_spline_pipeliner(df_X, knots=10):
     (continuous_features, category_features) = sort_features(df_X)
@@ -408,7 +407,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
 
     # --COMPARE MODELS--
     if compare_models:
-        choose_box_and_violin_plots(compare_models, results)
+        choose_box_and_violin_plots(names, scoring, compare_models, results)
 
     # ROC CURVE
     if ROC:

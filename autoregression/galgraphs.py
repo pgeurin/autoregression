@@ -15,10 +15,22 @@ from regression_tools.plotting_tools import (bootstrap_train, display_coef,
                                              predicteds_vs_actuals)
 from sklearn.metrics import auc, roc_curve
 from sklearn.pipeline import Pipeline
-from autoregression import autoregression
-
 # Always make it pretty.
 plt.style.use('ggplot')
+
+
+def sort_features(df):
+    """Takes a dataframe, returns lists of continuous and category (category) features
+    INPUT: dataframe
+    OUTPUT: two lists of continuous and category features"""
+    continuous_features = []
+    category_features = []
+    for type, feature in zip(df.dtypes, df.dtypes.index):
+        if type == np.dtype('int') or type == np.dtype('float'):
+            continuous_features.append(feature)
+        if type == np.dtype('O') or type == np.dtype('<U') or type == np.dtype('bool'):
+            category_features.append(feature)
+    return (continuous_features, category_features)
 
 
 def emperical_distribution(x, data):
@@ -89,18 +101,19 @@ def one_dim_scatterplot(ax, data, jitter=0.2, **options):
     ax.yaxis.set_ticklabels([])
     ax.set_ylim([-1, 1])
 
+
 def plot_one_scatter_matrix(plot_sample_df):
     scatter_matrix = pd.plotting.scatter_matrix(
         plot_sample_df,
         figsize=((len(plot_sample_df) * .07, len(plot_sample_df) * .07)),
         marker = ".",
         alpha = .5,
-        s = 50,
+        s=50,
         diagonal = "kde"
     )
     for ax in scatter_matrix.ravel():
-        ax.set_xlabel(ax.get_xlabel(), fontsize = 20, rotation = 90)
-        ax.set_ylabel(ax.get_ylabel(), fontsize = 20, rotation = 0)
+        ax.set_xlabel(ax.get_xlabel(), fontsize=20, rotation=90)
+        ax.set_ylabel(ax.get_ylabel(), fontsize=20, rotation=0)
     return None
 
 def plot_scatter_matrix(df, y_var_name=None):
@@ -117,7 +130,7 @@ def plot_scatter_matrix(df, y_var_name=None):
         OUTPUT:
             A jitterplot on ax.
     """
-    (continuous_features, category_features) = autoregression.sort_features(
+    (continuous_features, category_features) = sort_features(
                                                 df.drop(y_var_name, axis=1))
     if len(df) < 300:
         sample_limit = len(df)
@@ -137,7 +150,7 @@ def plot_scatter_matrix(df, y_var_name=None):
         #                                            len(plot_sample_df) * .07))
         plot_one_scatter_matrix(plot_sample_df)
         plt.show()
-        continuous_features= continuous_features[5:]
+        continuous_features = continuous_features[5:]
     plot_sample_df = df[[y_var_name] + continuous_features].sample(n=sample_limit)
     plot_one_scatter_matrix(plot_sample_df)
 
@@ -188,7 +201,7 @@ def plot_many_univariates(df, y_var_name):
         OUTPUT:
             A linear regression, with light blue bootstrapped lines showing the instability of the regression
     """
-    (continuous_features, category_features) = autoregression.sort_features(df)
+    (continuous_features, category_features) = sort_features(df)
     continuous_features_greater_two = list(filter(lambda x: len(df[x].unique()) > 2, continuous_features))
     if len(continuous_features_greater_two) > 1:
         num_plot_rows=int(np.ceil(len(continuous_features_greater_two) / 2.0))
@@ -627,15 +640,3 @@ def plot_box_and_violins(names, scoring, results):
     ax[3].set_xticklabels(['']+names)
     ax[3].set_yscale('log')
     ax[3].get_yaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-
-
-def choose_box_and_violin_plots(compare_models, results):
-    if is_continuous:
-        negresults = []
-        for i, result in enumerate(results):
-            negresults.append(-1*result)
-        timeit(plot_box_and_violins, names, scoring, negresults)
-    else:
-        timeit(plot_box_and_violins, names, scoring, results)
-    plt.show()
-    return None
