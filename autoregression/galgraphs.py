@@ -611,7 +611,8 @@ def plot_box_and_violins(names, scoring, results):
 
     # VIOLIN PLOTS
     ax[1].violinplot(results, vert=True)
-    ax[1].set_xticklabels(names)
+    ax[1].set_xticklabels(['PLT OFF ONE ERROR']+names)
+    ax[0].set_ylabel(f'{scoring}')
 
     # BOX PLOTS OF LOG(ERROR)
     ax[2].boxplot(results, vert=True)
@@ -622,6 +623,7 @@ def plot_box_and_violins(names, scoring, results):
 
     # VIOLIN PLOTS OF LOG(ERROR)
     ax[3].violinplot(results, vert=True)
-    ax[3].set_xticklabels(names)
+    ax[3].set_xticklabels(['PLT OFF ONE ERROR']+names)
     ax[3].set_yscale('log')
     ax[3].get_yaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+    ax[0].set_ylabel(f'{scoring}')
