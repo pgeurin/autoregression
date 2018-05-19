@@ -140,6 +140,47 @@ def timeit(func, *args):
     print(f'{str(func.__name__).upper()} TIME: {time() - start}')
     return answers
 
+def make_models(df, df_X, y, y_var_name, univariates):
+    """CHOOSE MODELS FOR CONTINUOUS OR CATEGORICAL Y, make the Models"""
+    names_models = []
+    print(len(y.unique()))
+    (continuous_features, category_features) = sort_features(df_X)
+    is_continuous = (y_var_name in continuous_features)
+    if is_continuous:
+        print('Y VARIABLE: "' + y_var_name + '" IS CONTINUOUS')
+        print()
+        if univariates:
+            galgraphs.plot_many_univariates(df, y_var_name)
+            plt.show()
+        # names_models.append(('LR', LinearRegression()))
+        alphas = np.logspace(start=-2, stop=5, num=5)
+        names_models.append(('RR', RidgeCV(alphas=alphas)))
+        names_models.append(('LASSO', LassoCV(alphas=alphas)))
+        names_models.append(('DT', DecisionTreeRegressor()))
+        names_models.append(('RF', RandomForestRegressor()))
+        names_models.append(('GB', GradientBoostingRegressor()))
+        names_models.append(('GB', AdaBoostRegressor()))
+        # names_models.append(('SVM', SVC()))
+        # evaluate each model in turn
+        scoring = 'neg_mean_squared_error'
+    else:
+        alphas = np.logspace(start=-5, stop=5, num=5)
+        print ( 'Y VARIABLE: "' + y_var_name + '" IS CATEGORICAL' )
+        print()
+        names_models.append(('LR', LogisticRegression()))
+        names_models.append(('LASSOish', LogisticRegression(penalty='l1')))
+        names_models.append(('LDA', LinearDiscriminantAnalysis()))
+        names_models.append(('RR', RidgeClassifierCV(alphas=alphas)))
+        names_models.append(('KNN', KNeighborsClassifier()))
+        names_models.append(('DT', DecisionTreeClassifier()))
+        # names_models.append(('NB', GaussianNB()))
+        names_models.append(('RF', RandomForestClassifier()))
+        names_models.append(('GB', GradientBoostingClassifier()))
+        names_models.append(('DT', AdaBoostClassifier()))
+        # names_models.append(('SVM', SVC()))
+        scoring = 'accuracy'
+    models = [x[1] for x in names_models]
+    return names_models, continuous_features, category_features, models, scoring, is_continuous
 
 def compare_predictions(df, y_var_name, percent_data=None,
                         category_limit=11, knots=3, corr_matrix=True,
@@ -222,49 +263,11 @@ def compare_predictions(df, y_var_name, percent_data=None,
     print(str(list(df.columns)))
     print()
 
-    # CHOOSE MODELS FOR CONTINUOUS OR CATEGORICAL Y
-    names_models = []
-    print(len(y.unique()))
 
-    (continuous_features, category_features) = sort_features(df_X)
-    is_continuous = (y_var_name in continuous_features)
-    if is_continuous:
-        print ( 'Y VARIABLE: "' + y_var_name + '" IS CONTINUOUS' )
-        print()
-        if univariates==True:
-            galgraphs.plot_many_univariates(df, y_var_name)
-            plt.show()
-        # names_models.append(('LR', LinearRegression()))
-        alphas = np.logspace(start=-2, stop=5, num=5)
-        names_models.append(('RR', RidgeCV(alphas=alphas)))
-        names_models.append(('LASSO', LassoCV(alphas=alphas)))
-        names_models.append(('DT', DecisionTreeRegressor()))
-        names_models.append(('RF', RandomForestRegressor()))
-        names_models.append(('GB', GradientBoostingRegressor()))
-        names_models.append(('GB', AdaBoostRegressor()))
-        # names_models.append(('SVM', SVC()))
-        # evaluate each model in turn
-        scoring = 'neg_mean_squared_error'
-    else:
-        alphas = np.logspace(start=-5, stop=5, num=5)
-        print ( 'Y VARIABLE: "' + y_var_name + '" IS CATEGORICAL' )
-        print()
-        names_models.append(('LR', LogisticRegression()))
-        names_models.append(('LASSOish', LogisticRegression(penalty='l1')))
-        names_models.append(('LDA', LinearDiscriminantAnalysis()))
-        names_models.append(('RR', RidgeClassifierCV(alphas=alphas)))
-        names_models.append(('KNN', KNeighborsClassifier()))
-        names_models.append(('DT', DecisionTreeClassifier()))
-        # names_models.append(('NB', GaussianNB()))
-        names_models.append(('RF', RandomForestClassifier()))
-        names_models.append(('GB', GradientBoostingClassifier()))
-        names_models.append(('DT', AdaBoostClassifier()))
-        # names_models.append(('SVM', SVC()))
-        scoring = 'accuracy'
-    models = [x[1] for x in names_models]
-    fit_models = []
+    (names_models, continuous_features, category_features, models, scoring, is_continuous) = make_models(df, df_X, y, y_var_name, univariates)
 
     # evaluate each model in turn
+    fit_models = []
     results = []
     names = []
     seed = 7
