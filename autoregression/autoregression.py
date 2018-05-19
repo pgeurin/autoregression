@@ -107,6 +107,7 @@ def is_equal(level):
         return var == level
     return print_equals
 
+
 def simple_category_specification(var_name, levels):
     """Make a pipeline taking feature (aka column) 'name' and outputting n-2 new spline features
         INPUT:
@@ -133,12 +134,13 @@ def simple_category_specification(var_name, levels):
         ("category_features", FeatureUnion(map_features))
     ])
 
+
 def timeit(func, *args):
     start = time()
     answers = func(args)
-
     print(f'{str(func.__name__).upper()} TIME: {time() - start}')
     return answers
+
 
 def make_cont_models(alphas):
     names_models = []
@@ -189,6 +191,23 @@ def make_models(df, df_X, y, y_var_name, univariates):
     models = [x[1] for x in names_models]
     return names_models, continuous_features, category_features, models, scoring, is_continuous
 
+def take_subsample(df, percent_data=None):
+    if percent_data is None:
+        while len(df) > 1000:
+            print(f"""'percent_data' NOT SPECIFIED AND len(df)=({len(df)})
+                  IS > 1000: TAKING A RANDOM %10 OF THE SAMPLE""")
+            df = df.sample(frac=.1)
+    else:
+        df = df.sample(frac=percent_data)
+    return df
+
+def make_sample_limit(df):
+    if len(df) < 300:
+        sample_limit = len(df)
+    else:
+        sample_limit = 300
+    return sample_limit
+
 def compare_predictions(df, y_var_name, percent_data=None,
                         category_limit=11, knots=3, corr_matrix=True,
                         scatter_matrix=True, bootstrap_coefs=True,
@@ -207,19 +226,14 @@ def compare_predictions(df, y_var_name, percent_data=None,
     """
     starttotal = time()
     df = cleandata.rename_columns(df)
-    y_var_name = stringcase.snakecase(y_var_name).replace('__', '_')
+    y_var_name = stringcase.snakecase(y_var_name).replace('__', '_').replace('__', '_')
     start = time()
-    if percent_data is None:
-        while len(df) > 1000:
-            print(f"""'percent_data' NOT SPECIFIED AND len(df)=({len(df)})
-                  IS > 1000: TAKING A RANDOM %10 OF THE SAMPLE""")
-            df = df.sample(frac=.1)
-    else:
-        df = df.sample(frac=percent_data)
+    df = take_subsample(df, percent_data)
     print(f'MAKE SUBSAMPLE TIME: {time() - start}')
     start = time()
     df = cleandata.clean_df(df, y_var_name)
     print(f'CLEAN_DF TIME: {time()-start}')
+    sample_limit = make_sample_limit(df)
 
     # REMEMBER OLD DATAFRAME
 
@@ -233,16 +247,10 @@ def compare_predictions(df, y_var_name, percent_data=None,
     # REMOVE CATEGORICAL VARIABLES THAT HAVE TOO MANY CATEGORIES TO BE USEFUL
     df = cleandata.drop_category_exeeding_limit(df, y_var_name, category_limit)
 
-
     # SHOW CORRELATION MATRIX
     if corr_matrix:
-        if len(df) < 300:
-            sample_limit = len(df)
-        else:
-            sample_limit = 300
         start = time()
         plt.matshow(df.sample(sample_limit).corr())
-        plt.show()
         print(f'PLOT CORRELATION TIME: {time() - start}')
 
     # MAKE SCATTER MATRIX
@@ -254,10 +262,10 @@ def compare_predictions(df, y_var_name, percent_data=None,
         print()
 
 
+    # TRANSFORM DATAFRAME
     print('DF COLUMNS: ')
     print(str(list(df.columns)))
     print()
-    # TRANSFORM DATAFRAME
     df_X = df.drop(y_var_name, axis = 1)
     pipeline = auto_spline_pipeliner(df_X, knots=5)
     pipeline.fit(df_X)
