@@ -31,6 +31,7 @@ from regression_tools.dftransformers import (
     FeatureUnion, MapFeature,
     StandardScaler, Intercept)
 from sklearn import model_selection
+from model_selection import cross_val_score
 from sklearn.metrics import auc, roc_curve
 from sklearn.linear_model import LogisticRegression, RidgeCV, LassoCV, RidgeClassifierCV
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
@@ -275,26 +276,17 @@ def compare_predictions(df, y_var_name, percent_data=None,
     (names_models, continuous_features, category_features, models, scoring, is_continuous) = make_models(df, df_X, y, y_var_name, univariates)
 
     # evaluate each model in turn
-    fit_models = []
-    results = []
-    names = []
-    seed = 7
+    fit_models, results, names, seed = [], [], [], 7
+
     for name, model in tqdm.tqdm(names_models):
-
         #if not linear: change df_X to df_X unpiped
-
-        # CROSS VALIDATE MODELS
-        start = time()
-        kfold = model_selection.KFold(n_splits=10, random_state=seed)
-        cv_results = model_selection.cross_val_score(model, X, y, cv=kfold, scoring=scoring)
-
         results.append(cv_results)
         names.append(name)
         msg = "%s: mean=%f std=%f" % (name, cv_results.mean(), cv_results.std())
         print(msg)
+        kfold = model_selection.KFold(n_splits=10, random_state=seed)
+        cv_results = timeit(cross_val_score, model, X, y, cv=kfold, scoring=scoring)
         plt.show()
-
-        print (f'CV CALC TIME: {time()-start}')
 
         # #OTHER CROSS VALIDATE METHOD:
         # ridge_regularization_strengths = np.logspace(np.log10(0.000001), np.log10(100000000), num=100)
@@ -316,12 +308,10 @@ def compare_predictions(df, y_var_name, percent_data=None,
         fit_models.append(model)
 
         # PLOT PREDICTED VS ACTUALS
-        start = time()
         if is_continuous:
-            plot_predicted_vs_actuals(df, model, y_var_name, sample_limit)
+            timeit(plot_predicted_vs_actuals, df, model, y_var_name, sample_limit)
             plt.show()
 
-        print(f'PLOT PREDICTED VS ACTUALS TIME: {time() - start}')
         # MAKE BOOTSTRAPS
         if bootstrap_coefs or partial_dep:
             bootstrap_models = bootstrap_train_premade(model, X, y, bootstraps=bootstraps, fit_intercept=False)
@@ -330,8 +320,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
 
         if hasattr(model, "coef_"):
             coefs = model.coef_
-            columns = list(df.columns)
-            columns.remove(y_var_name)
+            columns = list(df_X.columns)
             while (type(coefs[0]) is list) or (type(coefs[0]) is np.ndarray):
                 coefs = list(coefs[0])
             timeit(plot_coefs, coefs=coefs, columns=columns, graph_name=name)
@@ -341,7 +330,6 @@ def compare_predictions(df, y_var_name, percent_data=None,
             if is_continuous:
                 if bootstrap_coefs:
                     # PLOT BOOTSTRAP COEFS
-                    start = time()
                     fig, axs = timeit(plot_bootstrap_coefs, bootstrap_models, df_X.columns, n_col=4)
                     fig.tight_layout()
                     plt.show()
@@ -377,7 +365,6 @@ def compare_predictions(df, y_var_name, percent_data=None,
                         # add feature to jitter plot to categorical features
                         # add cdf???
                     if residuals:
-
                         fig, ax = plt.subplots()
                         timeit(plot_residual_error, ax, df_X_sample.values[:,0].reshape(-1), y.reshape(-1), y_hat_sample.reshape(-1), s=30)
                         plt.show()
