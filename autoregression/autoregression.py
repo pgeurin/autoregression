@@ -43,6 +43,8 @@ from regression_tools.dftransformers import (
 # import warnings
 # warnings.filterwarnings('ignore')
 import stringcase
+import galgraphs
+import cleandata
 from autoregression import cleandata
 from autoregression.galgraphs import (simple_spline_specification,
                                       choose_box_and_violin_plots,
@@ -363,7 +365,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
 
         if hasattr(model, "coef_"):
             coefs = model.coef_
-            columns = list(df_X.columns)
+            columns = list(df.columns.drop('y_var_name', axis=1))
             while (type(coefs[0]) is list) or (type(coefs[0]) is np.ndarray):
                 coefs = list(coefs[0])
             timeit(plot_coefs, coefs=coefs, columns=columns, graph_name=name)
