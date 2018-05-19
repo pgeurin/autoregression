@@ -38,24 +38,29 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
-
 # import warnings
 # warnings.filterwarnings('ignore')
-
 import stringcase
-
-# Always make it pretty.
-plt.style.use('ggplot')
-
-from autoregression import galgraphs
 from autoregression import cleandata
-# import galgraphs
-# import cleandata
-
+from autoregression.galgraphs import simple_spline_specification,
+                                    plot_many_univariates,
+                                    plot_scatter_matrix,
+                                    plot_solution_paths,
+                                    plot_predicted_vs_actuals,
+                                    plot_coefs,
+                                    # plot_partial_dependences
+                                    plot_feature_importances,
+                                    plot_many_predicteds_vs_actuals,
+                                    plot_residual_error,
+                                    plot_box_and_violins,
+                                    plot_rocs
 import os
 import tqdm
 from time import time
 import sys
+# Always make it pretty.
+plt.style.use('ggplot')
+
 
 def sort_features(df):
     """Takes a dataframe, returns lists of continuous and category (category) features
@@ -78,7 +83,7 @@ def auto_spline_pipeliner(df_X, knots=10):
     category_pipelet = []
     for name in continuous_features:
         knotspace = list(np.linspace(df_X[name].min(), df_X[name].max(), knots))
-        continuous_pipelet.append((name+'_fit', galgraphs.simple_spline_specification(name, knotspace)))
+        continuous_pipelet.append((name+'_fit', simple_spline_specification(name, knotspace)))
     for name in category_features:
         category_pipe = simple_category_specification(name, list(df_X[name].unique()))
         category_pipelet.append((name+'_spec', category_pipe))
@@ -180,7 +185,7 @@ def make_models(df, df_X, y, y_var_name, univariates):
         print('Y VARIABLE: "' + y_var_name + '" IS CONTINUOUS')
         print()
         if univariates:
-            galgraphs.plot_many_univariates(df, y_var_name)
+            plot_many_univariates(df, y_var_name)
             plt.show()
         names_models = make_cont_models(alphas)
         scoring = 'neg_mean_squared_error'
@@ -259,7 +264,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
 
     # MAKE SCATTER MATRIX
     if scatter_matrix:
-        timeit(galgraphs.plot_scatter_matrix, df, y_var_name)
+        timeit(plot_scatter_matrix, df, y_var_name)
         plt.show()
 
     # TRANSFORM DATAFRAME
@@ -302,7 +307,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
         #     ridge.fit(df_X, y)
         #     ridge_regressions.append(ridge)
         # fig, ax = plt.subplots(figsize=(16, 6))
-        # galgraphs.plot_solution_paths(ax, ridge_regressions)
+        # plot_solution_paths(ax, ridge_regressions)
 
 
         # ADD GRIDSEARCH HERE
@@ -314,7 +319,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
         # PLOT PREDICTED VS ACTUALS
         start = time()
         if is_continuous:
-            galgraphs.plot_predicted_vs_actuals(df, model, y_var_name, sample_limit)
+            plot_predicted_vs_actuals(df, model, y_var_name, sample_limit)
             plt.show()
 
         print(f'PLOT PREDICTED VS ACTUALS TIME: {time() - start}')
@@ -325,13 +330,12 @@ def compare_predictions(df, y_var_name, percent_data=None,
         # PLOT COEFFICIANTS
 
         if hasattr(model, "coef_"):
-            start = time()
             coefs = model.coef_
             columns = list(df.columns)
             columns.remove(y_var_name)
             while (type(coefs[0]) is list) or (type(coefs[0]) is np.ndarray):
                 coefs = list(coefs[0])
-            galgraphs.plot_coefs(coefs=coefs, columns=columns, graph_name=name)
+            timeit(plot_coefs, coefs=coefs, columns=columns, graph_name=name)
             plt.show()
 
         # PLOT BOOTSTRAP COEFFICIANTS
@@ -346,7 +350,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
         # PLOT FEATURE IMPORTANCES
         if feature_importances:
             if 'feature_importances_' in dir(model):
-                timeit(galgraphs.plot_feature_importances, model, df_X)
+                timeit(plot_feature_importances, model, df_X)
                 plt.show()
 
         # PLOT PARTIAL DEPENDENCIES
@@ -368,15 +372,15 @@ def compare_predictions(df, y_var_name, percent_data=None,
                 if len(y) == len(y_hat_sample):
                     if predicteds_vs_actuals:
                         (continuous_features, category_features) = sort_features(df_X_sample)
-                        timeit(galgraphs.plot_many_predicteds_vs_actuals, df_X_sample, continuous_features, y, y_hat_sample.reshape(-1), n_bins=50)
+                        timeit(plot_many_predicteds_vs_actuals, df_X_sample, continuous_features, y, y_hat_sample.reshape(-1), n_bins=50)
                         plt.show()
-                        # galgraphs.plot_many_predicteds_vs_actuals(df_X_sample, category_features, y, y_hat_sample.reshape(-1), n_bins=50)
+                        # plot_many_predicteds_vs_actuals(df_X_sample, category_features, y, y_hat_sample.reshape(-1), n_bins=50)
                         # add feature to jitter plot to categorical features
                         # add cdf???
                     if residuals:
 
                         fig, ax = plt.subplots()
-                        timeit(galgraphs.plot_residual_error, ax, df_X_sample.values[:,0].reshape(-1), y.reshape(-1), y_hat_sample.reshape(-1), s=30)
+                        timeit(plot_residual_error, ax, df_X_sample.values[:,0].reshape(-1), y.reshape(-1), y_hat_sample.reshape(-1), s=30)
                         plt.show()
                 else:
                     print('len(y) != len(y_hat), so no regressions included' )
@@ -405,15 +409,15 @@ def compare_predictions(df, y_var_name, percent_data=None,
             negresults = []
             for i, result in enumerate(results):
                 negresults.append(-1*result)
-            timeit(galgraphs.plot_box_and_violins, names, scoring, negresults)
+            timeit(plot_box_and_violins, names, scoring, negresults)
         else:
-            timeit(galgraphs.plot_box_and_violins, names, scoring, results)
+            timeit(plot_box_and_violins, names, scoring, results)
         plt.show()
 
     # ROC CURVE
     if ROC:
         if not is_continuous:
-            timeit(galgraphs.plot_rocs, models, df_X, y)
+            timeit(plot_rocs, models, df_X, y)
             plt.show()
 
     print(f'MAKE SUBSAMPLE TIME: {time() - starttotal}')
