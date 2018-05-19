@@ -135,10 +135,10 @@ def simple_category_specification(var_name, levels):
     ])
 
 
-def timeit(func, *args):
+def timeit(func, *args, **kwargs):
     print(f'Running: {func.__name__.upper()} ...')
     start = time()
-    answers = func(*args)
+    answers = func(*args, **kwargs)
     print(f'{func.__name__.upper()} TIME: {time() - start}')
     return answers
 
@@ -339,36 +339,28 @@ def compare_predictions(df, y_var_name, percent_data=None,
         # PLOT BOOTSTRAP COEFFICIANTS
             if is_continuous:
                 if bootstrap_coefs:
-                    print(f'PLOT COEFFICIANTS TIME: {time() - start}')
                     # PLOT BOOTSTRAP COEFS
                     start = time()
-                    fig, axs = plot_bootstrap_coefs(bootstrap_models, df_X.columns, n_col=4)
+                    fig, axs = timeit(plot_bootstrap_coefs, bootstrap_models, df_X.columns, n_col=4)
                     fig.tight_layout()
                     plt.show()
-                    print(f'PLOT BOOTSTRAP COEFFICIANTS TIME: {time() - start}')
 
         # PLOT FEATURE IMPORTANCES
         if feature_importances:
             if 'feature_importances_' in dir(model):
-                start = time()
-                galgraphs.plot_feature_importances(model, df_X)
+                timeit(galgraphs.plot_feature_importances, model, df_X)
                 plt.show()
-                print(f'PLOT FEATURE IMPORTANCES TIME: {time() - start}')
 
         # PLOT PARTIAL DEPENDENCIES
         if partial_dep:
-            start = time()
-            plot_partial_dependences(model, X=df_X_unpiped, var_names=unpiped_continuous_features, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
+            timeit(plot_partial_dependences, model, X=df_X_unpiped, var_names=unpiped_continuous_features, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
             plt.tight_layout()
             # plot_partial_dependences(model, X=df_unpiped.drop(y_var_name, axis=1), var_names=columns_unpiped, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
             # galgraphs.plot_partial_dependences(model, X=df_unpiped.drop(y_var_name, axis=1), var_names=columns_unpiped, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
             plt.show()
-            print(f'PLOT CONTINUOUS PARTIAL DEPENDENCIES TIME: {time() - start}')
-            start = time()
             # hot_categorical_vars = [column for column in df.columns if (len(df[column].unique()) == 2)]
             # galgraphs.shaped_plot_partial_dependences(model, df[[y_var_name]+hot_categorical_vars], y_var_name)
             plt.show()
-            print(f'PLOT CATEGORICAL PARTIAL DEPENDENCIES TIME: {time() - start}')
 
         # PLOT PREDICTED VS ACTUALS
         df_X_sample = df.sample(sample_limit).drop(y_var_name, axis=1)
@@ -378,11 +370,8 @@ def compare_predictions(df, y_var_name, percent_data=None,
                 if len(y) == len(y_hat_sample):
                     if predicteds_vs_actuals:
                         (continuous_features, category_features) = sort_features(df_X_sample)
-                        start = time()
-                        galgraphs.plot_many_predicteds_vs_actuals(df_X_sample, continuous_features, y, y_hat_sample.reshape(-1), n_bins=50)
+                        timeit(galgraphs.plot_many_predicteds_vs_actuals, df_X_sample, continuous_features, y, y_hat_sample.reshape(-1), n_bins=50)
                         plt.show()
-
-                        print(f'PLOT PREDICTEDS_VS_ACTUALS TIME: {time() - start}')
                         # galgraphs.plot_many_predicteds_vs_actuals(df_X_sample, category_features, y, y_hat_sample.reshape(-1), n_bins=50)
                         # add feature to jitter plot to categorical features
                         # add cdf???
