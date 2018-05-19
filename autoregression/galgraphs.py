@@ -260,7 +260,6 @@ def plot_many_predicteds_vs_actuals(df_X, x_var_names, df_y, y_hat, n_bins=50):
     return fig, axs
 
 def plot_coefs(coefs, columns, graph_name):
-
     fig, ax=plt.subplots(1, 1, figsize=(13, len(coefs) * 0.3))
     y_pos=np.arange(len(coefs))
     ax.barh(np.arange(len(coefs)), coefs, tick_label=columns)
@@ -628,3 +627,15 @@ def plot_box_and_violins(names, scoring, results):
     ax[3].set_xticklabels(['']+names)
     ax[3].set_yscale('log')
     ax[3].get_yaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+
+
+def choose_box_and_violin_plots(compare_models, results):
+    if is_continuous:
+        negresults = []
+        for i, result in enumerate(results):
+            negresults.append(-1*result)
+        timeit(plot_box_and_violins, names, scoring, negresults)
+    else:
+        timeit(plot_box_and_violins, names, scoring, results)
+    plt.show()
+    return None

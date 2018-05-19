@@ -45,17 +45,18 @@ from regression_tools.dftransformers import (
 import stringcase
 from autoregression import cleandata
 from autoregression.galgraphs import (simple_spline_specification,
-plot_many_univariates,
-plot_scatter_matrix,
-plot_solution_paths,
-plot_predicted_vs_actuals,
-plot_coefs,
-# plot_partial_dependences
-plot_feature_importances,
-plot_many_predicteds_vs_actuals,
-plot_residual_error,
-plot_box_and_violins,
-plot_rocs)
+                                      choose_box_and_violin_plots,
+                                      plot_many_univariates,
+                                      plot_scatter_matrix,
+                                      plot_solution_paths,
+                                      plot_predicted_vs_actuals,
+                                      plot_coefs,
+                                      # plot_partial_dependences
+                                      plot_feature_importances,
+                                      plot_many_predicteds_vs_actuals,
+                                      plot_residual_error,
+                                      plot_box_and_violins,
+                                      plot_rocs)
 import os
 import tqdm
 from time import time
@@ -322,12 +323,12 @@ def compare_predictions(df, y_var_name, percent_data=None,
 
     for name, model in tqdm.tqdm(names_models):
         #if not linear: change df_X to df_X unpiped
+        kfold = model_selection.KFold(n_splits=10, random_state=seed)
+        cv_results = timeit(cross_val_score, model, X, y, cv=kfold, scoring=scoring)
         results.append(cv_results)
         names.append(name)
         msg = "%s: mean=%f std=%f" % (name, cv_results.mean(), cv_results.std())
         print(msg)
-        kfold = model_selection.KFold(n_splits=10, random_state=seed)
-        cv_results = timeit(cross_val_score, model, X, y, cv=kfold, scoring=scoring)
         plt.show()
 
         # #OTHER CROSS VALIDATE METHOD:
@@ -406,14 +407,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
 
     # --COMPARE MODELS--
     if compare_models:
-        if is_continuous:
-            negresults = []
-            for i, result in enumerate(results):
-                negresults.append(-1*result)
-            timeit(plot_box_and_violins, names, scoring, negresults)
-        else:
-            timeit(plot_box_and_violins, names, scoring, results)
-        plt.show()
+        choose_box_and_violin_plots(compare_models, results)
 
     # ROC CURVE
     if ROC:
