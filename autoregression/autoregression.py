@@ -11,11 +11,21 @@ from sympy.solvers import solve
 from sympy import Symbol
 import scipy.optimize as optim
 from itertools import product
-from sklearn.model_selection import (KFold, train_test_split, cross_val_score)
+from sklearn.model_selection import (KFold,
+                                     train_test_split,
+                                     cross_val_score)
 from sklearn.neighbors import KernelDensity
 from sklearn.linear_model import (LinearRegression, Ridge)
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import GradientBoostingRegressor, GradientBoostingClassifier, RandomForestRegressor, RandomForestClassifier, AdaBoostClassifier, AdaBoostRegressor
+from sklearn import model_selection
+from sklearn.metrics import auc, roc_curve
+from sklearn.linear_model import LogisticRegression, RidgeCV, LassoCV, RidgeClassifierCV
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.naive_bayes import GaussianNB
+from sklearn.svm import SVC
 from basis_expansions.basis_expansions import (
     Polynomial, LinearSpline, NaturalCubicSpline)
 from regression_tools.plotting_tools import (
@@ -30,31 +40,22 @@ from regression_tools.dftransformers import (
     ColumnSelector, Identity,
     FeatureUnion, MapFeature,
     StandardScaler, Intercept)
-from sklearn import model_selection
-from model_selection import cross_val_score
-from sklearn.metrics import auc, roc_curve
-from sklearn.linear_model import LogisticRegression, RidgeCV, LassoCV, RidgeClassifierCV
-from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-from sklearn.naive_bayes import GaussianNB
-from sklearn.svm import SVC
 # import warnings
 # warnings.filterwarnings('ignore')
 import stringcase
 from autoregression import cleandata
-from autoregression.galgraphs import simple_spline_specification,
-                                        plot_many_univariates,
-                                        plot_scatter_matrix,
-                                        plot_solution_paths,
-                                        plot_predicted_vs_actuals,
-                                        plot_coefs,
-                                        # plot_partial_dependences
-                                        plot_feature_importances,
-                                        plot_many_predicteds_vs_actuals,
-                                        plot_residual_error,
-                                        plot_box_and_violins,
-                                        plot_rocs
+from autoregression.galgraphs import (simple_spline_specification,
+plot_many_univariates,
+plot_scatter_matrix,
+plot_solution_paths,
+plot_predicted_vs_actuals,
+plot_coefs,
+# plot_partial_dependences
+plot_feature_importances,
+plot_many_predicteds_vs_actuals,
+plot_residual_error,
+plot_box_and_violins,
+plot_rocs)
 import os
 import tqdm
 from time import time
@@ -226,6 +227,30 @@ def use_spline(df, y_var_name):
     df[y_var_name] = y
     return df, df_X, X, y, pipeline
 
+
+def plot_continuous_error_graphs(df, y_var_name, model, is_continuous, predicteds_vs_actuals=True, residuals=True):
+    df_X_sample = df.sample(sample_limit).drop(y_var_name, axis=1)
+    y_hat_sample = model.predict(df_X_sample)
+    if is_continuous:
+        if len(y)>0:
+            if len(y) == len(y_hat_sample):
+                if predicteds_vs_actuals:
+                    (continuous_features, category_features) = sort_features(df_X_sample)
+                    timeit(plot_many_predicteds_vs_actuals, df_X_sample, continuous_features, y, y_hat_sample.reshape(-1), n_bins=50)
+                    plt.show()
+                    # plot_many_predicteds_vs_actuals(df_X_sample, category_features, y, y_hat_sample.reshape(-1), n_bins=50)
+                    # add feature to jitter plot to categorical features
+                    # add cdf???
+                if residuals:
+                    fig, ax = plt.subplots()
+                    timeit(plot_residual_error, ax, df_X_sample.values[:,0].reshape(-1), y.reshape(-1), y_hat_sample.reshape(-1), s=30)
+                    plt.show()
+            else:
+                print('len(y) != len(y_hat), so no regressions included' )
+        else:
+            print('No y, so no regressions included')
+    return None
+
 def compare_predictions(df, y_var_name, percent_data=None,
                         category_limit=11, knots=3, corr_matrix=True,
                         scatter_matrix=True, bootstrap_coefs=True,
@@ -352,26 +377,10 @@ def compare_predictions(df, y_var_name, percent_data=None,
             plt.show()
 
         # PLOT PREDICTED VS ACTUALS
-        df_X_sample = df.sample(sample_limit).drop(y_var_name, axis=1)
-        y_hat_sample = model.predict(df_X_sample)
-        if is_continuous:
-            if len(y)>0:
-                if len(y) == len(y_hat_sample):
-                    if predicteds_vs_actuals:
-                        (continuous_features, category_features) = sort_features(df_X_sample)
-                        timeit(plot_many_predicteds_vs_actuals, df_X_sample, continuous_features, y, y_hat_sample.reshape(-1), n_bins=50)
-                        plt.show()
-                        # plot_many_predicteds_vs_actuals(df_X_sample, category_features, y, y_hat_sample.reshape(-1), n_bins=50)
-                        # add feature to jitter plot to categorical features
-                        # add cdf???
-                    if residuals:
-                        fig, ax = plt.subplots()
-                        timeit(plot_residual_error, ax, df_X_sample.values[:,0].reshape(-1), y.reshape(-1), y_hat_sample.reshape(-1), s=30)
-                        plt.show()
-                else:
-                    print('len(y) != len(y_hat), so no regressions included' )
-            else:
-                print('No y, so no regressions included')
+        # Sample no matter what
+        plot_continuous_error_graphs(df, y_var_name, model, is_continuous,
+                                     predicteds_vs_actuals=True,
+                                     residuals=True)
 
         df_X = df.drop(y_var_name, axis=1)
 
