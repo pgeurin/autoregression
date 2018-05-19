@@ -208,6 +208,17 @@ def make_sample_limit(df):
         sample_limit = 300
     return sample_limit
 
+def use_spline(df, y_var_name):
+    df_X = df.drop(y_var_name, axis = 1)
+    pipeline = auto_spline_pipeliner(df_X, knots=5)
+    pipeline.fit(df_X)
+    df_X = pipeline.transform(df_X)
+    X = df_X.values
+    y = df[y_var_name]
+    df = df_X
+    df[y_var_name] = y
+    return df, df_X, X, y, pipeline
+
 def compare_predictions(df, y_var_name, percent_data=None,
                         category_limit=11, knots=3, corr_matrix=True,
                         scatter_matrix=True, bootstrap_coefs=True,
@@ -266,14 +277,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
     print('DF COLUMNS: ')
     print(str(list(df.columns)))
     print()
-    df_X = df.drop(y_var_name, axis = 1)
-    pipeline = auto_spline_pipeliner(df_X, knots=5)
-    pipeline.fit(df_X)
-    df_X = pipeline.transform(df_X)
-    X = df_X.values
-    y = df[y_var_name]
-    df = df_X
-    df[y_var_name] = y
+    df, df_X, X, y, pipeline = use_spline(df, y_var_name)
     print('DF COLUMNS AFTER TRANSFORM: ')
     print(str(list(df.columns)))
     print()
