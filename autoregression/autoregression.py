@@ -43,17 +43,17 @@ from sklearn.svm import SVC
 import stringcase
 from autoregression import cleandata
 from autoregression.galgraphs import simple_spline_specification,
-                                    plot_many_univariates,
-                                    plot_scatter_matrix,
-                                    plot_solution_paths,
-                                    plot_predicted_vs_actuals,
-                                    plot_coefs,
-                                    # plot_partial_dependences
-                                    plot_feature_importances,
-                                    plot_many_predicteds_vs_actuals,
-                                    plot_residual_error,
-                                    plot_box_and_violins,
-                                    plot_rocs
+                                        plot_many_univariates,
+                                        plot_scatter_matrix,
+                                        plot_solution_paths,
+                                        plot_predicted_vs_actuals,
+                                        plot_coefs,
+                                        # plot_partial_dependences
+                                        plot_feature_importances,
+                                        plot_many_predicteds_vs_actuals,
+                                        plot_residual_error,
+                                        plot_box_and_violins,
+                                        plot_rocs
 import os
 import tqdm
 from time import time
@@ -250,8 +250,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
 
     # REMEMBER OLD DATAFRAME
 
-    df_unpiped = df.copy()
-    df_X_unpiped = df_unpiped.drop(y_var_name, axis=1)
+    df_unpiped, df_X_unpiped = df.copy(), df.copy().drop(y_var_name, axis=1)
     (unpiped_continuous_features, unpiped_category_features) = sort_features(df_X_unpiped)
     columns_unpiped = df_X_unpiped.columns
 
