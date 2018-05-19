@@ -251,6 +251,23 @@ def plot_continuous_error_graphs(df, y_var_name, model, is_continuous, predicted
             print('No y, so no regressions included')
     return None
 
+
+def get_error(model, df_X, y, is_continuous):
+    if is_continuous:
+        y_hat = model.predict(df_X)
+        print(f'{name}: MSE = {np.mean((y_hat-y)**2)}')
+    else:
+        if 'predict_proba' in dir(model):
+            y_hat = model.predict_proba(df_X)[:,0]
+            logloss = np.mean(y * np.log(y_hat) + (1 - y) * np.log(1 - y_hat))
+            print(f'{name}: logloss = {logloss}')
+        if 'decision_function' in dir(model):
+            d = model.decision_function(df_X)[0]
+            y_hat = np.exp(d) / np.sum(np.exp(d))
+            print(f'{name}: logloss = {np.mean((y_hat-y)**2)}')
+        return y_hat
+
+
 def compare_predictions(df, y_var_name, percent_data=None,
                         category_limit=11, knots=3, corr_matrix=True,
                         scatter_matrix=True, bootstrap_coefs=True,
@@ -385,18 +402,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
         df_X = df.drop(y_var_name, axis=1)
 
         # GET ERROR
-        if is_continuous:
-            y_hat = model.predict(df_X)
-            print(f'{name}: MSE = {np.mean((y_hat-y)**2)}')
-        else:
-            if 'predict_proba' in dir(model):
-                y_hat = model.predict_proba(df_X)[:,0]
-                logloss = np.mean(y * np.log(y_hat) + (1 - y) * np.log(1 - y_hat))
-                print(f'{name}: logloss = {logloss}')
-            if 'decision_function' in dir(model):
-                d = model.decision_function(df_X)[0]
-                y_hat = np.exp(d) / np.sum(np.exp(d))
-                print(f'{name}: logloss = {np.mean((y_hat-y)**2)}')
+        y_hat = get_error(model, df_X, y, is_continuous)
 
     # --COMPARE MODELS--
     if compare_models:
