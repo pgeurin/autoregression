@@ -39,7 +39,7 @@ This project just wouldn't exist without it.
 This work is only possible because of the developers of matplotlib, pandas and Numpy.
 
 
-![Box and Violin](example_plots/box_and_violin.png)
+![Box and Violin](example_plots/comparison_plots.png)
 
 
 ## Cleandata
