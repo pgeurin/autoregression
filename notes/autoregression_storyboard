@@ -35,7 +35,9 @@ TODO:
 			axs[0].scatter(df_admissions.gpa,df_admissions.admit+jitter, s = 1)
 			axs[1].scatter(df_admissions.gre+jitter2*50,df_admissions.admit+jitter, s = 1)
 			axs[2].scatter(df_admissions["rank"]+jitter2,df_admissions.admit+jitter, s = 1)
+			like in: http://localhost:8888/notebooks/Users/macbookpro/Dropbox/Galvanize/dsi-logistic-regression/pair.ipynb
 	X turn the vioin plots 90 deg
+	O add jitter like in
 	O change violinplots log on y, not x.
 	O fix nameing on violin plots
 	O Add gridsearch to change scoring function AND test varibles
