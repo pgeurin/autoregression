@@ -5,7 +5,9 @@ Clean, graph, and model your data in one command.
 Automatically assess and test multiple working
 machine learning techniques. 
 
-autoregression.compare_predictions(df, 'y_var')
+Suggested first pass:
+
+python -c 'import autoregression; autoregression.compare_predictions(df, 'y_var')'
 
 Included are two extra modules:
 
