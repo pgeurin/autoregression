@@ -16,14 +16,15 @@ A `setup.py` file is included. To install run:
 
 ```bash
 pip install autoregression
-    ```
+```
 
 or
 
 ```bash
 git clone https://github.com/pgeurin/autoregression
 pip install -e autoregression/
-    ```
+```
+
 for an editable, most current version.
 
 ## Galgraphs
