@@ -49,6 +49,7 @@ plt.style.use('ggplot')
 
 from autoregression import galgraphs
 from autoregression import cleandata
+from autoregression.galgraphs import sort_features
 # import galgraphs
 # import cleandata
 
@@ -56,19 +57,6 @@ import os
 import tqdm
 from time import time
 import sys
-
-def sort_features(df):
-    """Takes a dataframe, returns lists of continuous and category (category) features
-    INPUT: dataframe
-    OUTPUT: two lists of continuous and category features"""
-    continuous_features = []
-    category_features = []
-    for type, feature in zip(df.dtypes, df.dtypes.index):
-        if type == np.dtype('int') or type == np.dtype('float'):
-            continuous_features.append(feature)
-        if type == np.dtype('O') or type == np.dtype('<U') or type == np.dtype('bool'):
-            category_features.append(feature)
-    return (continuous_features, category_features)
 
 def auto_spline_pipeliner(df_X, knots=10):
     (continuous_features, category_features) = sort_features(df_X)
