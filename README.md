@@ -13,10 +13,17 @@ machine learning techniques:
 
     import autoregression
     iris_df = pd.read_csv('https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv')
-    regression.compare_predictions(iris_df,'sepal length')
+    autoregression.compare_predictions(iris_df,'sepal length')
 
 
 ## Installation
+
+### Dependencies:
+    pip install stringcase
+    git clone https://github.com/madrury/regression-tools
+    pip install -e regression-tools/
+    git clone https://github.com/madrury/basis-expansions.git
+    pip install basis_expansions/
 
 A `setup.py` file is included. To install run:
 
