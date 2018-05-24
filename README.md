@@ -11,6 +11,10 @@ machine learning techniques:
 <!-- ![iris_autoregression](example_plots/iris_autoregression_02_fast.gif) -->
 <img src="example_plots/iris_autoregression_02_fast.gif" width="600"/>
 
+    import autoregression
+    iris_df = pd.read_csv('https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv')
+    regression.compare_predictions(iris_df,'sepal length')
+
 
 ## Installation
 
