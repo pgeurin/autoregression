@@ -52,7 +52,7 @@ def emperical_distribution(x, data):
         count = count + np.array(x >= datum)
     return weight * count
 
-    def plot_emperical_distribution(ax, data):
+def plot_emperical_distribution(ax, data):
         """ plots a emperical CMF of data on the matplotib axis ax
         INPUT:
             ax:
