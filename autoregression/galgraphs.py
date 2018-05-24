@@ -20,7 +20,7 @@ plt.style.use('ggplot')
 
 
 def sort_features(df):
-    """Takes a dataframe, returns lists of continuous and category (category) features
+    """Takes a dataframe, returns lists of continuous and category features
     INPUT: dataframe
     OUTPUT: two lists of continuous and category features"""
     continuous_features = []
@@ -50,18 +50,18 @@ def emperical_distribution(x, data):
         count = count + np.array(x >= datum)
     return weight * count
 
-    def plot_emperical_distribution(ax, data):
-        """ plots a emperical CMF of data on the matplotib axis ax
-        INPUT:
-            ax:
-                matplotlib axis
-                (use 'fig, ax, subplots(1,1)')
-            data:
-                list, array or dataframe of floats or ints
-            Same length required
-        OUTPUT:
-            A CMF plot.
-    """
+def plot_emperical_distribution(ax, data):
+    """ plots a emperical CMF of data on the matplotib axis ax
+    INPUT:
+        ax:
+            matplotlib axis
+            (use 'fig, ax, subplots(1,1)')
+        data:
+            list, array or dataframe of floats or ints
+        Same length required
+    OUTPUT:
+        A CMF plot.
+"""
     if type(data).__name__ == 'DataFrame':
         for column in data:
             minimum = data[column].min()

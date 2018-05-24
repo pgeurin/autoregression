@@ -43,8 +43,8 @@ from regression_tools.dftransformers import (
 # import warnings
 # warnings.filterwarnings('ignore')
 import stringcase
-from autoregression import cleandata
-from autoregression import galgraphs
+# from autoregression import cleandata
+# from autoregression import galgraphs
 from galgraphs import (sort_features,
                        simple_spline_specification,
                        plot_many_univariates,
