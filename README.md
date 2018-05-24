@@ -9,7 +9,7 @@ machine learning techniques:
     autoregression.compare_predictions(df, 'y_var')
 
 ![iris_autoregression](example_plots/iris_autoregression_02_fast.gif)
-<img src="example_plots/iris_autoregression_02_fast.gif" alt="drawing" style="width: 400px;"/>
+<img src="example_plots/iris_autoregression_02_fast.gif" width="600"/>
 
 
 ## Installation
