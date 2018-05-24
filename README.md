@@ -8,8 +8,8 @@ machine learning techniques:
     import autoregression
     autoregression.compare_predictions(df, 'y_var')
 
-![iris_autoregression](example_plots/iris_autoregression_02_fast.gif)
-<img src="example_plots/iris_autoregression_02_fast.gif" alt="drawing" style="width: 400px;"/>
+<!-- ![iris_autoregression](example_plots/iris_autoregression_02_fast.gif) -->
+<img src="example_plots/iris_autoregression_02_fast.gif" width="600"/>
 
 
 ## Installation
@@ -43,7 +43,7 @@ This work is only possible because of the developers of matplotlib, pandas and N
 
 
 <!-- ![Box and Violin](example_plots/comparison_plots.png) -->
-<img src="example_plots/comparison_plots.png" alt="drawing" style="width: 400px;"/>
+<img src="example_plots/comparison_plots.png" width="600"/>
 
 ## Cleandata
 Cleans pandas dataframes using modern machine learning practices.
@@ -60,9 +60,9 @@ Turn first to make_arema_prediction(). It will take care of you.
 If your data is a event-timestamp, rather than an event series, convert your data with timestamp_events_to_timeseries().
 
 <!-- ![forcast](example_plots/forcast.png) -->
-<img src="example_plots/forcast.png" alt="drawing" style="width: 400px;"/>
+<img src="example_plots/forcast.png" width="600"/>
 <!-- ![forcast](example_plots/autocorrelation_long.png) -->
-<img src="example_plots/autocorrelation_long.png" alt="drawing" style="width: 400px;"/>
+<img src="example_plots/autocorrelation_long.png" width="600"/>
 
 ## Versioning
 
@@ -73,8 +73,8 @@ If your data is a event-timestamp, rather than an event series, convert your dat
 
 ## More Graphs:
 <!-- ![univariate](example_plots/univariate.png) -->
-<img src="example_plots/univariate.png" alt="drawing" style="width: 400px;"/>
+<img src="example_plots/univariate.png" width="600"/>
 <!-- ![partial_dependency](example_plots/partial_dependency.png) -->
-<img src="example_plots/partial_dependency.png" alt="drawing" style="width: 400px;"/>
+<img src="example_plots/partial_dependency.png" width="600"/>
 <!-- ![predicteds_vs_actuals](example_plots/predicteds_vs_actuals.png) -->
-<img src="example_plots/predicteds_vs_actuals.png" alt="drawing" style="width: 400px;"/>
+<img src="example_plots/predicteds_vs_actuals.png" width="600"/>
