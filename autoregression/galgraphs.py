@@ -15,22 +15,10 @@ from regression_tools.plotting_tools import (bootstrap_train, display_coef,
                                              predicteds_vs_actuals)
 from sklearn.metrics import auc, roc_curve
 from sklearn.pipeline import Pipeline
+from autoregression import autoregression
+
 # Always make it pretty.
 plt.style.use('ggplot')
-
-
-def sort_features(df):
-    """Takes a dataframe, returns lists of continuous and category features
-    INPUT: dataframe
-    OUTPUT: two lists of continuous and category features"""
-    continuous_features = []
-    category_features = []
-    for type, feature in zip(df.dtypes, df.dtypes.index):
-        if type == np.dtype('int') or type == np.dtype('float'):
-            continuous_features.append(feature)
-        if type == np.dtype('O') or type == np.dtype('<U') or type == np.dtype('bool'):
-            category_features.append(feature)
-    return (continuous_features, category_features)
 
 
 def emperical_distribution(x, data):
@@ -50,18 +38,18 @@ def emperical_distribution(x, data):
         count = count + np.array(x >= datum)
     return weight * count
 
-def plot_emperical_distribution(ax, data):
-    """ plots a emperical CMF of data on the matplotib axis ax
-    INPUT:
-        ax:
-            matplotlib axis
-            (use 'fig, ax, subplots(1,1)')
-        data:
-            list, array or dataframe of floats or ints
-        Same length required
-    OUTPUT:
-        A CMF plot.
-"""
+    def plot_emperical_distribution(ax, data):
+        """ plots a emperical CMF of data on the matplotib axis ax
+        INPUT:
+            ax:
+                matplotlib axis
+                (use 'fig, ax, subplots(1,1)')
+            data:
+                list, array or dataframe of floats or ints
+            Same length required
+        OUTPUT:
+            A CMF plot.
+    """
     if type(data).__name__ == 'DataFrame':
         for column in data:
             minimum = data[column].min()
@@ -101,19 +89,18 @@ def one_dim_scatterplot(ax, data, jitter=0.2, **options):
     ax.yaxis.set_ticklabels([])
     ax.set_ylim([-1, 1])
 
-
 def plot_one_scatter_matrix(plot_sample_df):
     scatter_matrix = pd.plotting.scatter_matrix(
         plot_sample_df,
         figsize=((len(plot_sample_df) * .07, len(plot_sample_df) * .07)),
         marker = ".",
         alpha = .5,
-        s=50,
+        s = 50,
         diagonal = "kde"
     )
     for ax in scatter_matrix.ravel():
-        ax.set_xlabel(ax.get_xlabel(), fontsize=20, rotation=90)
-        ax.set_ylabel(ax.get_ylabel(), fontsize=20, rotation=0)
+        ax.set_xlabel(ax.get_xlabel(), fontsize = 20, rotation = 90)
+        ax.set_ylabel(ax.get_ylabel(), fontsize = 20, rotation = 0)
     return None
 
 def plot_scatter_matrix(df, y_var_name=None):
@@ -130,7 +117,7 @@ def plot_scatter_matrix(df, y_var_name=None):
         OUTPUT:
             A jitterplot on ax.
     """
-    (continuous_features, category_features) = sort_features(
+    (continuous_features, category_features) = autoregression.sort_features(
                                                 df.drop(y_var_name, axis=1))
     if len(df) < 300:
         sample_limit = len(df)
@@ -150,7 +137,7 @@ def plot_scatter_matrix(df, y_var_name=None):
         #                                            len(plot_sample_df) * .07))
         plot_one_scatter_matrix(plot_sample_df)
         plt.show()
-        continuous_features = continuous_features[5:]
+        continuous_features= continuous_features[5:]
     plot_sample_df = df[[y_var_name] + continuous_features].sample(n=sample_limit)
     plot_one_scatter_matrix(plot_sample_df)
 
@@ -201,7 +188,7 @@ def plot_many_univariates(df, y_var_name):
         OUTPUT:
             A linear regression, with light blue bootstrapped lines showing the instability of the regression
     """
-    (continuous_features, category_features) = sort_features(df)
+    (continuous_features, category_features) = autoregression.sort_features(df)
     continuous_features_greater_two = list(filter(lambda x: len(df[x].unique()) > 2, continuous_features))
     if len(continuous_features_greater_two) > 1:
         num_plot_rows=int(np.ceil(len(continuous_features_greater_two) / 2.0))
@@ -273,8 +260,8 @@ def plot_many_predicteds_vs_actuals(df_X, x_var_names, df_y, y_hat, n_bins=50):
     return fig, axs
 
 def plot_coefs(coefs, columns, graph_name):
-    fig, ax=plt.subplots(1, 1, figsize=(13, len(coefs) * 0.3))
-    y_pos=np.arange(len(coefs))
+    fig, ax = plt.subplots(1, 1, figsize=(13, len(coefs) * 0.3))
+    y_pos = np.arange(len(coefs))
     ax.barh(np.arange(len(coefs)), coefs, tick_label=columns)
     plt.ylim(min(y_pos) - 1, max(y_pos) + 1)
     ax.set_title('Standardized Coefficents of ' + graph_name)
@@ -294,12 +281,15 @@ def plot_feature_importances(model, df_X):
         A plot showing the feature importances of the model.
     """
     if 'feature_importances_' in dir(model):
-        feat_scores = pd.DataFrame({'Fraction of Samples Affected': model.feature_importances_},
-                               index=df_X.columns)
-        feat_scores = feat_scores.sort_values(by='Fraction of Samples Affected')
+        feat_scores = pd.DataFrame(
+            {'Fraction of Samples Affected': model.feature_importances_},
+            index=df_X.columns)
+        feat_scores = feat_scores.sort_values(
+            by='Fraction of Samples Affected')
         feat_scores.plot(kind='barh', figsize=(10,len(feat_scores) * 0.3))
     else:
-        raise ValueError(f"Model: {model} doesn't have feature_importances_, unable to plot")
+        raise ValueError(
+            f"Model: {model} doesn't have feature_importances_, unable to plot")
     return None
 
 def plot_residual(ax, x, y, y_hat, n_bins=50, s=3):
@@ -640,3 +630,15 @@ def plot_box_and_violins(names, scoring, results):
     ax[3].set_xticklabels(['']+names)
     ax[3].set_yscale('log')
     ax[3].get_yaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+
+
+def choose_box_and_violin_plots(compare_models, results):
+    if is_continuous:
+        negresults = []
+        for i, result in enumerate(results):
+            negresults.append(-1*result)
+        timeit(plot_box_and_violins, names, scoring, negresults)
+    else:
+        timeit(plot_box_and_violins, names, scoring, results)
+    plt.show()
+    return None
