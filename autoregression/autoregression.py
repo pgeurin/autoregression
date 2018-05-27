@@ -66,20 +66,30 @@ import sys
 plt.style.use('ggplot')
 
 
-def plot_ridges(df, y_var_name, alphas):
-    ridge_regressions = []
+def plot_choose_alpha(df, model, y_var_name, alphas):
+    ridges = []
+    ridges_scores = []
+    ave_scores = []
     y = df[y_var_name]
     df_X = df.drop(y_var_name, axis=1)
     for alpha in alphas:
-        ridge = Ridge(alpha=alpha)
+        ridge = model(alpha=alpha)
         ridge.fit(df_X, y)
-        ridge_regressions.append(ridge)
+        ridges.append(ridge)
+        ridge_scores = cross_val_score(ridge, df_X.values, y)
+        ridges_scores.append(ridge_scores)
+        ave_score = np.mean(ridge_scores)
+        ave_scores.append(ave_score)
     fig, ax = plt.subplots(figsize=(16, 6))
-    plot_solution_paths(ax, ridge_regressions)
-    return None
+    plot_solution_paths(ax, ridges)
+    best_index = np.argmax(ave_scores)   # IS THIS MIN OR MAX???
+    return alphas[best_index], ridges_scores[best_index]
 
 
-def plot_continuous_error_graphs(df, y, y_var_name, model, is_continuous, sample_limit=300, predicteds_vs_actuals=True, residuals=True):
+def plot_continuous_error_graphs(df, y, y_var_name, model,
+                                 is_continuous, sample_limit=300,
+                                 predicteds_vs_actuals=True,
+                                 residuals=True):
     df_X_sample = df.sample(sample_limit).drop(y_var_name, axis=1)
     y_hat_sample = model.predict(df_X_sample)
     if is_continuous:
@@ -205,7 +215,7 @@ def timeit(func, *args, **kwargs):
 def make_cont_models(alphas):
     names_models = []
     # names_models.append(('LR', LinearRegression()))
-    names_models.append(('RR', RidgeCV(alphas=alphas)))
+    names_models.append(('RR', Ridge))
     names_models.append(('LASSO', LassoCV(alphas=alphas)))
     names_models.append(('DT', DecisionTreeRegressor()))
     names_models.append(('RF', RandomForestRegressor()))
@@ -355,7 +365,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
     df, df_X, X, y, pipeline = use_spline(df, y_var_name)
     print('DF COLUMNS AFTER TRANSFORM: \n' + str(list(df.columns)) + '\n')
 
-    #MAKE MODELS
+    # MAKE MODELS
     (names_models, continuous_features,
      category_features, models, scoring,
      is_continuous, alphas) = make_models(df, df_X, y, y_var_name, univariates)
@@ -364,10 +374,14 @@ def compare_predictions(df, y_var_name, percent_data=None,
     fit_models, results, names, seed = [], [], [], 7
 
     for name, model in tqdm.tqdm(names_models):
-        #if not linear: change df_X to df_X unpiped
-        kfold = model_selection.KFold(n_splits=10, random_state=seed)
-        cv_results = timeit(cross_val_score, model, X, y,
-                            cv=kfold, scoring=scoring)
+        # if not linear: change df_X to df_X unpiped
+        if name == 'RR':
+            alpha, cv_results = plot_choose_alpha(df, model, y_var_name, alphas)
+            model = model(alpha)
+        else:
+            kfold = model_selection.KFold(n_splits=10, random_state=seed)
+            cv_results = timeit(cross_val_score, model, X, y,
+                                cv=kfold, scoring=scoring)
         results.append(cv_results)
         names.append(name)
         msg = "%s: mean=%f std=%f" % (name, cv_results.mean(),
@@ -375,10 +389,6 @@ def compare_predictions(df, y_var_name, percent_data=None,
         print(msg)
 
         # OTHER CROSS VALIDATE METHOD:
-        if name == 'RR':
-            plot_ridges(df, y_var_name, alphas)
-        # LATER ADD: else: model.fit()
-
 
         # FIT MODEL WITH ALL DATA
         model.fit(X, y)
