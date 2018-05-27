@@ -45,7 +45,6 @@ import stringcase
 from autoregression import cleandata
 from autoregression import galgraphs
 from autoregression.galgraphs import (sort_features,
-                                      simple_spline_specification,
                                       plot_many_univariates,
                                       plot_scatter_matrix,
                                       plot_solution_paths,
@@ -173,6 +172,26 @@ def is_equal(level):
         # print('the var is ' + str(level))
         return var == level
     return print_equals
+
+
+def simple_spline_specification(name, knots=10):
+    """Make a pipeline taking feature (aka column) 'name' and outputting n-2
+    new spline features
+        INPUT:
+            name:
+                string, a feature name to spline
+            knots:
+                int, number knots (divisions) which are divisions between
+                splines.
+        OUTPUT:
+            pipeline returning of n-2 new splines after transformed
+    """
+    select_name = "{}_select".format(name)
+    spline_name = "{}_spline".format(name)
+    return Pipeline([
+        (select_name, ColumnSelector(name=name)),
+        (spline_name, NaturalCubicSpline(knots=knots))
+    ])
 
 
 def simple_category_specification(var_name, levels):
