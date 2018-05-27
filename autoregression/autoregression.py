@@ -287,6 +287,14 @@ def get_error(name, model, df_X, y, is_continuous):
             print(f'{name}: logloss = {np.mean((y_hat-y)**2)}')
         return y_hat
 
+def clean_dataframe(df, y_var_name, percent_data):
+        df = cleandata.rename_columns(df)
+        y_var_name = stringcase.snakecase(y_var_name).replace('__', '_'
+                                                              ).replace('__', '_')
+        df = timeit(take_subsample, df, percent_data)
+        df = timeit(cleandata.clean_df, df, y_var_name)
+        sample_limit = make_sample_limit(df)
+        return df, sample_limit
 
 def compare_predictions(df, y_var_name, percent_data=None,
                         category_limit=11, knots=3, corr_matrix=True,
@@ -306,12 +314,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
             pipeline
     """
     starttotal = time()
-    df = cleandata.rename_columns(df)
-    y_var_name = stringcase.snakecase(y_var_name).replace('__', '_'
-                                                          ).replace('__', '_')
-    df = timeit(take_subsample, df, percent_data)
-    df = timeit(cleandata.clean_df, df, y_var_name)
-    sample_limit = make_sample_limit(df)
+    df, sample_limit = clean_dataframe(df, y_var_name, percent_data)
 
     # REMEMBER OLD DATAFRAME
 
