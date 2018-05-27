@@ -67,6 +67,34 @@ import sys
 plt.style.use('ggplot')
 
 
+def plot_continuous_error_graphs(df, y, y_var_name, model, is_continuous, sample_limit=300, predicteds_vs_actuals=True, residuals=True):
+    df_X_sample = df.sample(sample_limit).drop(y_var_name, axis=1)
+    y_hat_sample = model.predict(df_X_sample)
+    if is_continuous:
+        if len(y) > 0:
+            if len(y) == len(y_hat_sample):
+                if predicteds_vs_actuals:
+                    (continuous_features,
+                     category_features) = sort_features(df_X_sample)
+                    timeit(plot_many_predicteds_vs_actuals, df_X_sample,
+                           continuous_features, y, y_hat_sample.reshape(-1),
+                           n_bins=50)
+                    plt.show()
+                    # add feature to jitter plot to categorical features
+                    # add cdf???
+                if residuals:
+                    fig, ax = plt.subplots()
+                    timeit(plot_residual_error, ax,
+                           df_X_sample.values[:, 0].reshape(-1),
+                           y.reshape(-1), y_hat_sample.reshape(-1), s=30)
+                    plt.show()
+            else:
+                print('len(y) != len(y_hat), so no regressions included')
+        else:
+            print('No y, so no regressions included')
+    return None
+
+
 def choose_box_and_violin_plots(names, scoring, compare_models,
                                 results, is_continuous):
     if is_continuous:
@@ -233,7 +261,7 @@ def make_sample_limit(df):
 
 
 def use_spline(df, y_var_name):
-    df_X = df.drop(y_var_name, axis = 1)
+    df_X = df.drop(y_var_name, axis=1)
     pipeline = auto_spline_pipeliner(df_X, knots=5)
     pipeline.fit(df_X)
     df_X = pipeline.transform(df_X)
@@ -310,7 +338,9 @@ def compare_predictions(df, y_var_name, percent_data=None,
     print('DF COLUMNS AFTER TRANSFORM: \n' + str(list(df.columns)) + '\n')
 
     #MAKE MODELS
-    (names_models, continuous_features, category_features, models, scoring, is_continuous) = make_models(df, df_X, y, y_var_name, univariates)
+    (names_models, continuous_features,
+     category_features, models, scoring,
+     is_continuous) = make_models(df, df_X, y, y_var_name, univariates)
 
     # evaluate each model in turn
     fit_models, results, names, seed = [], [], [], 7
@@ -318,10 +348,12 @@ def compare_predictions(df, y_var_name, percent_data=None,
     for name, model in tqdm.tqdm(names_models):
         #if not linear: change df_X to df_X unpiped
         kfold = model_selection.KFold(n_splits=10, random_state=seed)
-        cv_results = timeit(cross_val_score, model, X, y, cv=kfold, scoring=scoring)
+        cv_results = timeit(cross_val_score, model, X, y,
+                            cv=kfold, scoring=scoring)
         results.append(cv_results)
         names.append(name)
-        msg = "%s: mean=%f std=%f" % (name, cv_results.mean(), cv_results.std())
+        msg = "%s: mean=%f std=%f" % (name, cv_results.mean(),
+                                      cv_results.std())
         print(msg)
         plt.show()
 
@@ -448,18 +480,6 @@ def bootstrap_train_premade(model, X, y, bootstraps=1000, **kwargs):
         bootstrap_models.append(model)
     return bootstrap_models
 
-if __name__ == "__main__":
-    balance_non_zero = pd.read_csv("/Users/macbookpro/Dropbox/Galvanize/lectures/DSI_Lectures/regularized-regression/matt_drury/balance_non_zero.csv", index_col=0)
-    balance = balance_non_zero.head(1000)
-    # balance_with_zero = pd.read_csv("/Users/macbookpro/Dropbox/Galvanize/dsi-practical-linear-regression/data/balance.csv", index_col=0)
-    # balance = balance_with_zero.head(10000)
 
-    # make_plots(balance, 'Balance', auto_spline_pipeliner, 10)
-    (rr_optimized,
-     auto_spline_pipeline) = make_k_folds_ridge(balance, 'Balance',
-                                                pipeliner=auto_spline_pipeliner,
-                                                knots=10, alpha_min=10,
-                                                alpha_max=1000)
-    # import pdb;
-    # pdb.set_trace()
-    # print(rr_optimized.predict(auto_spline_pipeline.transform(balance).values))
+if __name__ == "__main__":
+    pass
