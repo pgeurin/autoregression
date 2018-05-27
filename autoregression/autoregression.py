@@ -15,12 +15,11 @@ from sklearn.model_selection import (KFold,
                                      train_test_split,
                                      cross_val_score)
 from sklearn.neighbors import KernelDensity
-from sklearn.linear_model import (LinearRegression, Ridge)
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import GradientBoostingRegressor, GradientBoostingClassifier, RandomForestRegressor, RandomForestClassifier, AdaBoostClassifier, AdaBoostRegressor
 from sklearn import model_selection
 from sklearn.metrics import auc, roc_curve
-from sklearn.linear_model import LogisticRegression, RidgeCV, LassoCV, RidgeClassifierCV
+from sklearn.linear_model import Ridge, Lasso, RidgeClassifier, LogisticRegression, RidgeCV, LassoCV, RidgeClassifierCV
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
@@ -217,7 +216,7 @@ def make_cont_models(alphas):
     names_models = []
     # names_models.append(('LR', LinearRegression()))
     names_models.append(('RR', Ridge))
-    names_models.append(('LASSO', LassoCV(alphas=alphas)))
+    names_models.append(('LASSO', Lasso))
     names_models.append(('DT', DecisionTreeRegressor()))
     names_models.append(('RF', RandomForestRegressor()))
     names_models.append(('GB', GradientBoostingRegressor()))
@@ -230,7 +229,7 @@ def make_cat_models(alphas):
     names_models.append(('LR', LogisticRegression()))
     # names_models.append(('LASSOish', LogisticRegression(penalty='l1')))
     # names_models.append(('LDA', LinearDiscriminantAnalysis()))
-    names_models.append(('RR', RidgeClassifierCV(alphas=alphas)))
+    names_models.append(('RR', RidgeClassifier))
     names_models.append(('KNN', KNeighborsClassifier()))
     names_models.append(('DT', DecisionTreeClassifier()))
     # names_models.append(('NB', GaussianNB()))
@@ -380,7 +379,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
     for name, model in tqdm.tqdm(names_models):
         # if not linear: change df_X to df_X unpiped
         kfold = model_selection.KFold(n_splits=10, random_state=seed)
-        if name == 'RR':
+        if name == 'RR' or name == 'LASSO':
             alpha, cv_results = timeit(plot_choose_alpha, df, model,
                                        y_var_name, alphas, kfold, scoring)
             model = model(alpha)
