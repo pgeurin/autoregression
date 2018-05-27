@@ -5,8 +5,10 @@ Clean, graph, and model your data in one command.
 Automatically assess and test multiple working
 machine learning techniques:
 
+
     import autoregression
     autoregression.compare_predictions(df, 'y_var')
+
 
 <!-- ![iris_autoregression](example_plots/iris_autoregression_02_fast.gif) -->
 <img src="example_plots/iris_autoregression_02_fast.gif" width="600"/>

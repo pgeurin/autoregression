@@ -15,10 +15,24 @@ from regression_tools.plotting_tools import (bootstrap_train, display_coef,
                                              predicteds_vs_actuals)
 from sklearn.metrics import auc, roc_curve
 from sklearn.pipeline import Pipeline
-from autoregression import autoregression
+# from autoregression import autoregression
 
 # Always make it pretty.
 plt.style.use('ggplot')
+
+
+def sort_features(df):
+    """Takes a dataframe, returns lists of continuous and category (category) features
+    INPUT: dataframe
+    OUTPUT: two lists of continuous and category features"""
+    continuous_features = []
+    category_features = []
+    for type, feature in zip(df.dtypes, df.dtypes.index):
+        if type == np.dtype('int') or type == np.dtype('float'):
+            continuous_features.append(feature)
+        if type == np.dtype('O') or type == np.dtype('<U') or type == np.dtype('bool'):
+            category_features.append(feature)
+    return (continuous_features, category_features)
 
 
 def emperical_distribution(x, data):
@@ -38,19 +52,20 @@ def emperical_distribution(x, data):
         count = count + np.array(x >= datum)
     return weight * count
 
-    def plot_emperical_distribution(ax, data):
-        """ plots a emperical CMF of data on the matplotib axis ax
-        INPUT:
-            ax:
-                matplotlib axis
-                (use 'fig, ax, subplots(1,1)')
-            data:
-                list, array or dataframe of floats or ints
-            Same length required
-        OUTPUT:
-            A CMF plot.
+
+def plot_emperical_distribution(ax, data):
+    """ plots a emperical CMF of data on the matplotib axis ax
+    INPUT:
+        ax:
+            matplotlib axis
+            (use 'fig, ax, subplots(1,1)')
+        data:
+            list, array or dataframe of floats or ints
+        Same length required
+    OUTPUT:
+        A CMF plot.
     """
-    if type(data).__name__ == 'DataFrame':
+    if (type(data).__name__ == 'DataFrame'):
         for column in data:
             minimum = data[column].min()
             maximum = data[column].max()
@@ -117,7 +132,7 @@ def plot_scatter_matrix(df, y_var_name=None):
         OUTPUT:
             A jitterplot on ax.
     """
-    (continuous_features, category_features) = autoregression.sort_features(
+    (continuous_features, category_features) = sort_features(
                                                 df.drop(y_var_name, axis=1))
     if len(df) < 300:
         sample_limit = len(df)
@@ -137,7 +152,7 @@ def plot_scatter_matrix(df, y_var_name=None):
         #                                            len(plot_sample_df) * .07))
         plot_one_scatter_matrix(plot_sample_df)
         plt.show()
-        continuous_features= continuous_features[5:]
+        continuous_features = continuous_features[5:]
     plot_sample_df = df[[y_var_name] + continuous_features].sample(n=sample_limit)
     plot_one_scatter_matrix(plot_sample_df)
 
@@ -188,8 +203,7 @@ def plot_many_univariates(df, y_var_name):
         OUTPUT:
             A linear regression, with light blue bootstrapped lines showing the instability of the regression
     """
-    (continuous_features, category_features) = autoregression.sort_features(df)
-    print(continuous_features)
+    (continuous_features, category_features) = sort_features(df)
     continuous_features_greater_two = list(filter(lambda x: len(df[x].unique()) > 2, continuous_features))
     if len(continuous_features_greater_two) > 1:
         num_plot_rows=int(np.ceil(len(continuous_features_greater_two) / 2.0))

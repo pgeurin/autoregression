@@ -3,7 +3,8 @@ import numpy as np
 import pandas as pd
 import stringcase
 
-from autoregression import autoregression
+# from autoregression import autoregression
+from autoregression import galgraphs
 
 import warnings
 warnings.filterwarnings("ignore", """SettingWithCopyWarning:
@@ -132,7 +133,7 @@ def clean_df_X(df_X):
             df_X:
                 The same dataframe, with meaned values that were null. At most three new features (of 0's and 1's) per column.
     """
-    (continuous_features, categorical_features) = autoregression.sort_features(df_X)
+    (continuous_features, categorical_features) = galgraphs.sort_features(df_X)
     for feature in continuous_features:
         df_X = add_feature_continuous_null(df_X, feature)
     for feature in categorical_features:
@@ -205,7 +206,7 @@ def drop_categories_exeeding_limit(df, y_var_name, category_limit):
             df:
                 A dataframe with X less features for each who exeeds the limit.
     """
-    (continuous_features, category_features) = autoregression.sort_features(
+    (continuous_features, category_features) = galgraphs.sort_features(
         df.drop(y_var_name, axis=1))
     for cat in category_features:
         if len(df[cat].unique()) > category_limit:
