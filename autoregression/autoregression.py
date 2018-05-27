@@ -66,7 +66,7 @@ import sys
 plt.style.use('ggplot')
 
 
-def choose_box_and_violin_plots(names, scoring, compare_models, results):
+def choose_box_and_violin_plots(names, scoring, compare_models, results, is_continuous):
     if is_continuous:
         negresults = []
         for i, result in enumerate(results):
@@ -229,7 +229,7 @@ def use_spline(df, y_var_name):
     return df, df_X, X, y, pipeline
 
 
-def plot_continuous_error_graphs(df, y_var_name, model, is_continuous, predicteds_vs_actuals=True, residuals=True):
+def plot_continuous_error_graphs(df, y, y_var_name, model, is_continuous, sample_limit=300, predicteds_vs_actuals=True, residuals=True):
     df_X_sample = df.sample(sample_limit).drop(y_var_name, axis=1)
     y_hat_sample = model.predict(df_X_sample)
     if is_continuous:
@@ -253,7 +253,7 @@ def plot_continuous_error_graphs(df, y_var_name, model, is_continuous, predicted
     return None
 
 
-def get_error(model, df_X, y, is_continuous):
+def get_error(name, model, df_X, y, is_continuous):
     if is_continuous:
         y_hat = model.predict(df_X)
         print(f'{name}: MSE = {np.mean((y_hat-y)**2)}')
@@ -363,7 +363,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
 
         if hasattr(model, "coef_"):
             coefs = model.coef_
-            columns = list(df.drop('y_var_name', axis=1).columns)
+            columns = list(df.drop(y_var_name, axis=1).columns)
             while (type(coefs[0]) is list) or (type(coefs[0]) is np.ndarray):
                 coefs = list(coefs[0])
             timeit(plot_coefs, coefs=coefs, columns=columns, graph_name=name)
@@ -396,18 +396,22 @@ def compare_predictions(df, y_var_name, percent_data=None,
 
         # PLOT PREDICTED VS ACTUALS
         # Sample no matter what
-        plot_continuous_error_graphs(df, y_var_name, model, is_continuous,
+        plot_continuous_error_graphs(df, y, y_var_name, model, is_continuous, sample_limit,
                                      predicteds_vs_actuals=True,
                                      residuals=True)
 
         df_X = df.drop(y_var_name, axis=1)
 
         # GET ERROR
-        y_hat = get_error(model, df_X, y, is_continuous)
+        y_hat = get_error(name, model, df_X, y, is_continuous)
 
     # --COMPARE MODELS--
     if compare_models:
-        choose_box_and_violin_plots(names, scoring, compare_models, results)
+        choose_box_and_violin_plots(names,
+                                    scoring,
+                                    compare_models,
+                                    results,
+                                    is_continuous)
 
     # ROC CURVE
     if ROC:
