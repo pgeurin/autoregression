@@ -143,14 +143,15 @@ def take_sample(df):
 
 def color_map(x):
     """ Transfer a float number (ideally between -1 and 1) to a rgba color.
-  if 1 < x:
-     return hsv_to_rgb(25/360, 1, 1, alpha=1)
-  elif 0 <= x:
-     return hsv_to_rgb(25/360, x, 1, alpha=1)
-  elif x < 0:
-     return hsv_to_rgb(240/360, -x, 1, alpha=1)
-  elif x < -1:
-     return hsv_to_rgb(240/360, 1, 1, alpha=1)
+    """
+    if 1 < x:
+        return hsv_to_rgb(25/360, 1, 1, alpha=1)
+    elif 0 <= x:
+        return hsv_to_rgb(25/360, x, 1, alpha=1)
+    elif x < 0:
+        return hsv_to_rgb(240/360, -x, 1, alpha=1)
+    elif x < -1:
+        return hsv_to_rgb(240/360, 1, 1, alpha=1)
 
 
 def plot_one_scatter_matrix(plot_sample_df, sample_df, y_var_name,
