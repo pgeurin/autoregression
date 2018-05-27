@@ -131,6 +131,8 @@ def make_color_wheel(df, y_var_name):
 
 
 def take_sample(df):
+    """ If input dataframe has >300 rows, take 300 at random in a new dataramef.
+    """
     if len(df) < 300:
         sample_limit = len(df)
     else:
@@ -140,6 +142,7 @@ def take_sample(df):
 
 
 def color_map(x):
+    """ Transfer a float number (ideally between -1 and 1) to a rgba color.
   if 1 < x:
      return hsv_to_rgb(25/360, 1, 1, alpha=1)
   elif 0 <= x:
@@ -354,7 +357,8 @@ def plot_many_predicteds_vs_actuals(df_X, x_var_names, df_y, y_hat, n_bins=50):
             x_var_names:
                 a list of strings that are columns of dataframe
             y_var_name:
-                string, the column name of the dependent y variable in the dataframe
+                string, the column name of the dependent y variable in the
+                dataframe
             y_hat:
                 a array of y values you predicted to be compared with the
                 values of y_var_name
