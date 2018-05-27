@@ -3,13 +3,44 @@
 Clean, graph, and model your data in one command.
 
 Automatically assess and test multiple working
-machine learning techniques. 
+machine learning techniques:
 
-Suggested first pass:
 
-python -c 'import autoregression; autoregression.compare_predictions(df, 'y_var')'
+    import autoregression
+    autoregression.compare_predictions(df, 'y_var')
 
-Included are two extra modules:
+
+<!-- ![iris_autoregression](example_plots/iris_autoregression_02_fast.gif) -->
+<img src="example_plots/iris_autoregression_02_fast.gif" width="600"/>
+
+    import autoregression
+    iris_df = pd.read_csv('https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv')
+    autoregression.compare_predictions(iris_df,'sepal length')
+
+
+## Installation
+
+### Dependencies:
+    pip install stringcase
+    git clone https://github.com/madrury/regression-tools
+    pip install -e regression-tools/
+    git clone https://github.com/madrury/basis-expansions.git
+    pip install basis_expansions/
+
+A `setup.py` file is included. To install run:
+
+```bash
+pip install autoregression
+```
+
+or
+
+```bash
+git clone https://github.com/pgeurin/autoregression
+pip install -e autoregression/
+```
+
+for an editable, most current version.
 
 ## Galgraphs
 A library of graphing functions.
@@ -23,7 +54,9 @@ The code used here HEAVILY relies upon the foundational work of Matt Drury.
 This project just wouldn't exist without it.
 This work is only possible because of the developers of matplotlib, pandas and Numpy.
 
-![iris_autoregression](example_plots/iris_autoregression_02_fast.gif)
+
+<!-- ![Box and Violin](example_plots/comparison_plots.png) -->
+<img src="example_plots/comparison_plots.png" width="600"/>
 
 ## Cleandata
 Cleans pandas dataframes using modern machine learning practices.
@@ -32,25 +65,17 @@ Turn first to clean_df(). It's your friend in a world of darkness.
 It detects all manner of unmentionable values and replaces them with the mean or
 distinguishing feature.
 
-![Box and Violin](example_plots/box_and_violin.png)
 
 ## Timeseries
 Forcasts using ARIMA modeling techinques.
 
-Turn first to make_arema_prediction(). It will take care of you. 
+Turn first to make_arema_prediction(). It will take care of you.
 If your data is a event-timestamp, rather than an event series, convert your data with timestamp_events_to_timeseries().
 
-![forcast](example_plots/forcast.png)
-![forcast](example_plots/autocorrelation_long.png)
-
-
-## Installation
-
-A `setup.py` file is included. To install into a python environment run
-
-```bash
-pip install git+https://github.com/pgeurin/autoregression.git
-```
+<!-- ![forcast](example_plots/forcast.png) -->
+<img src="example_plots/forcast.png" width="600"/>
+<!-- ![forcast](example_plots/autocorrelation_long.png) -->
+<img src="example_plots/autocorrelation_long.png" width="600"/>
 
 ## Versioning
 
@@ -60,6 +85,9 @@ pip install git+https://github.com/pgeurin/autoregression.git
 0.0.4 - Cleaning. AutoRegression.
 
 ## More Graphs:
-![univariate](example_plots/univariate.png)
-![partial_dependency](example_plots/partial_dependency.png)
-![predicteds_vs_actuals](example_plots/predicteds_vs_actuals.png)
+<!-- ![univariate](example_plots/univariate.png) -->
+<img src="example_plots/univariate.png" width="600"/>
+<!-- ![partial_dependency](example_plots/partial_dependency.png) -->
+<img src="example_plots/partial_dependency.png" width="600"/>
+<!-- ![predicteds_vs_actuals](example_plots/predicteds_vs_actuals.png) -->
+<img src="example_plots/predicteds_vs_actuals.png" width="600"/>
