@@ -378,7 +378,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
 
     # MAKE SCATTER MATRIX
     if scatter_matrix:
-        timeit(plot_scatter_matrix, df, y_var_name)
+        timeit(plot_scatter_matrix, df, y_var_name, colors=True)
         plt.show()
 
     # TRANSFORM DATAFRAME
