@@ -1,4 +1,4 @@
-   import numpy as np
+import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
 import pandas as pd
@@ -56,7 +56,6 @@ from autoregression.galgraphs import (sort_features,
                                       plot_feature_importances,
                                       plot_many_predicteds_vs_actuals,
                                       plot_residual_error,
-                                      plot_continuous_error_graphs,
                                       plot_box_and_violins,
                                       plot_rocs)
 import os
@@ -65,6 +64,19 @@ from time import time
 import sys
 # Always make it pretty.
 plt.style.use('ggplot')
+
+
+def plot_ridges(df, y_var_name, alphas):
+    ridge_regressions = []
+    y = df[y_var_name]
+    df_X = df.drop(y_var_name, axis=1)
+    for alpha in alphas:
+        ridge = Ridge(alpha=alpha)
+        ridge.fit(df_X, y)
+        ridge_regressions.append(ridge)
+    fig, ax = plt.subplots(figsize=(16, 6))
+    plot_solution_paths(ax, ridge_regressions)
+    return None
 
 
 def plot_continuous_error_graphs(df, y, y_var_name, model, is_continuous, sample_limit=300, predicteds_vs_actuals=True, residuals=True):
@@ -238,7 +250,7 @@ def make_models(df, df_X, y, y_var_name, univariates):
         scoring = 'accuracy'
     models = [x[1] for x in names_models]
     return (names_models, continuous_features, category_features,
-            models, scoring, is_continuous)
+            models, scoring, is_continuous, alphas)
 
 
 def take_subsample(df, percent_data=None):
@@ -287,10 +299,13 @@ def get_error(name, model, df_X, y, is_continuous):
             print(f'{name}: logloss = {np.mean((y_hat-y)**2)}')
         return y_hat
 
+
 def clean_dataframe(df, y_var_name, percent_data):
         df = cleandata.rename_columns(df)
-        y_var_name = stringcase.snakecase(y_var_name).replace('__', '_'
-                                                              ).replace('__', '_')
+        y_var_name = stringcase.snakecase(y_var_name).replace('__',
+                                                              '_'
+                                                              ).replace('__',
+                                                                        '_')
         df = timeit(take_subsample, df, percent_data)
         df = timeit(cleandata.clean_df, df, y_var_name)
         sample_limit = make_sample_limit(df)
@@ -343,7 +358,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
     #MAKE MODELS
     (names_models, continuous_features,
      category_features, models, scoring,
-     is_continuous) = make_models(df, df_X, y, y_var_name, univariates)
+     is_continuous, alphas) = make_models(df, df_X, y, y_var_name, univariates)
 
     # evaluate each model in turn
     fit_models, results, names, seed = [], [], [], 7
@@ -358,24 +373,12 @@ def compare_predictions(df, y_var_name, percent_data=None,
         msg = "%s: mean=%f std=%f" % (name, cv_results.mean(),
                                       cv_results.std())
         print(msg)
-        plt.show()
 
-        # #OTHER CROSS VALIDATE METHOD:
-        # ridge_regularization_strengths = np.logspace(np.log10(0.000001),
-        #                                              np.log10(100000000),
-        #                                              num=100)
-        # ridge_regressions = []
-        # y=df['age']
-        # df_X = df.drop('age', axis=1)
-        # for alpha in ridge_regularization_strengths:
-        #     ridge = Ridge(alpha=alpha)
-        #     ridge.fit(df_X, y)
-        #     ridge_regressions.append(ridge)
-        # fig, ax = plt.subplots(figsize=(16, 6))
-        # plot_solution_paths(ax, ridge_regressions)
+        # OTHER CROSS VALIDATE METHOD:
+        if name == 'RR':
+            plot_ridges(df, y_var_name, alphas)
+        # LATER ADD: else: model.fit()
 
-
-        # ADD GRIDSEARCH HERE
 
         # FIT MODEL WITH ALL DATA
         model.fit(X, y)
