@@ -1,4 +1,4 @@
-import numpy as np
+   import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
 import pandas as pd
@@ -46,18 +46,19 @@ import stringcase
 from autoregression import cleandata
 from autoregression import galgraphs
 from autoregression.galgraphs import (sort_features,
-                       simple_spline_specification,
-                       plot_many_univariates,
-                       plot_scatter_matrix,
-                       plot_solution_paths,
-                       plot_predicted_vs_actuals,
-                       plot_coefs,
-                       # plot_partial_dependences
-                       plot_feature_importances,
-                       plot_many_predicteds_vs_actuals,
-                       plot_residual_error,
-                       plot_box_and_violins,
-                       plot_rocs)
+                                      simple_spline_specification,
+                                      plot_many_univariates,
+                                      plot_scatter_matrix,
+                                      plot_solution_paths,
+                                      plot_predicted_vs_actuals,
+                                      plot_coefs,
+                                      # plot_partial_dependences
+                                      plot_feature_importances,
+                                      plot_many_predicteds_vs_actuals,
+                                      plot_residual_error,
+                                      plot_continuous_error_graphs,
+                                      plot_box_and_violins,
+                                      plot_rocs)
 import os
 import tqdm
 from time import time
@@ -66,7 +67,8 @@ import sys
 plt.style.use('ggplot')
 
 
-def choose_box_and_violin_plots(names, scoring, compare_models, results, is_continuous):
+def choose_box_and_violin_plots(names, scoring, compare_models,
+                                results, is_continuous):
     if is_continuous:
         negresults = []
         for i, result in enumerate(results):
@@ -85,10 +87,16 @@ def auto_spline_pipeliner(df_X, knots=10):
     continuous_pipelet = []
     category_pipelet = []
     for name in continuous_features:
-        knotspace = list(np.linspace(df_X[name].min(), df_X[name].max(), knots))
-        continuous_pipelet.append((name+'_fit', simple_spline_specification(name, knotspace)))
+        knotspace = list(np.linspace(df_X[name].min(),
+                                     df_X[name].max(),
+                                     knots))
+        continuous_pipelet.append((name+'_fit',
+                                   simple_spline_specification(name,
+                                                               knotspace)))
     for name in category_features:
-        category_pipe = simple_category_specification(name, list(df_X[name].unique()))
+        category_pipe = simple_category_specification(name,
+                                                      list(df_X[name].unique())
+                                                      )
         category_pipelet.append((name+'_spec', category_pipe))
         # print(df_X[name].unique()[:-1])
     category_features_pipe = FeatureUnion(category_pipelet)
@@ -108,6 +116,7 @@ def auto_spline_pipeliner(df_X, knots=10):
     ])
     return pipe_continuous_category
 
+
 def is_equal(level):
     def print_equals(var):
         # print('the var is ' + str(var))
@@ -117,12 +126,14 @@ def is_equal(level):
 
 
 def simple_category_specification(var_name, levels):
-    """Make a pipeline taking feature (aka column) 'name' and outputting n-2 new spline features
+    """Make a pipeline taking feature (aka column) 'name' and
+        outputting n-2 new spline features
         INPUT:
             name:
                 string, a feature name to spline
             knots:
-                int, number knots (divisions) which are divisions between splines.
+                int, number knots (divisions) which are divisions
+                between splines.
         OUTPUT:
             pipeline
     """
@@ -198,7 +209,9 @@ def make_models(df, df_X, y, y_var_name, univariates):
         names_models = make_cat_models(alphas)
         scoring = 'accuracy'
     models = [x[1] for x in names_models]
-    return names_models, continuous_features, category_features, models, scoring, is_continuous
+    return (names_models, continuous_features, category_features,
+            models, scoring, is_continuous)
+
 
 def take_subsample(df, percent_data=None):
     if percent_data is None:
@@ -210,12 +223,14 @@ def take_subsample(df, percent_data=None):
         df = df.sample(frac=percent_data)
     return df
 
+
 def make_sample_limit(df):
     if len(df) < 300:
         sample_limit = len(df)
     else:
         sample_limit = 300
     return sample_limit
+
 
 def use_spline(df, y_var_name):
     df_X = df.drop(y_var_name, axis = 1)
@@ -229,37 +244,13 @@ def use_spline(df, y_var_name):
     return df, df_X, X, y, pipeline
 
 
-def plot_continuous_error_graphs(df, y, y_var_name, model, is_continuous, sample_limit=300, predicteds_vs_actuals=True, residuals=True):
-    df_X_sample = df.sample(sample_limit).drop(y_var_name, axis=1)
-    y_hat_sample = model.predict(df_X_sample)
-    if is_continuous:
-        if len(y)>0:
-            if len(y) == len(y_hat_sample):
-                if predicteds_vs_actuals:
-                    (continuous_features, category_features) = sort_features(df_X_sample)
-                    timeit(plot_many_predicteds_vs_actuals, df_X_sample, continuous_features, y, y_hat_sample.reshape(-1), n_bins=50)
-                    plt.show()
-                    # plot_many_predicteds_vs_actuals(df_X_sample, category_features, y, y_hat_sample.reshape(-1), n_bins=50)
-                    # add feature to jitter plot to categorical features
-                    # add cdf???
-                if residuals:
-                    fig, ax = plt.subplots()
-                    timeit(plot_residual_error, ax, df_X_sample.values[:,0].reshape(-1), y.reshape(-1), y_hat_sample.reshape(-1), s=30)
-                    plt.show()
-            else:
-                print('len(y) != len(y_hat), so no regressions included' )
-        else:
-            print('No y, so no regressions included')
-    return None
-
-
 def get_error(name, model, df_X, y, is_continuous):
     if is_continuous:
         y_hat = model.predict(df_X)
         print(f'{name}: MSE = {np.mean((y_hat-y)**2)}')
     else:
         if 'predict_proba' in dir(model):
-            y_hat = model.predict_proba(df_X)[:,0]
+            y_hat = model.predict_proba(df_X)[:, 0]
             logloss = np.mean(y * np.log(y_hat) + (1 - y) * np.log(1 - y_hat))
             print(f'{name}: logloss = {logloss}')
         if 'decision_function' in dir(model):
@@ -281,13 +272,15 @@ def compare_predictions(df, y_var_name, percent_data=None,
             name:
                 string, a feature name to spline
             knots:
-                int, number knots (divisions) which are divisions between splines.
+                int, number knots (divisions) which are
+                divisions between splines.
         OUTPUT:
             pipeline
     """
     starttotal = time()
     df = cleandata.rename_columns(df)
-    y_var_name = stringcase.snakecase(y_var_name).replace('__', '_').replace('__', '_')
+    y_var_name = stringcase.snakecase(y_var_name).replace('__', '_'
+                                                          ).replace('__', '_')
     df = timeit(take_subsample, df, percent_data)
     df = timeit(cleandata.clean_df, df, y_var_name)
     sample_limit = make_sample_limit(df)
@@ -295,7 +288,8 @@ def compare_predictions(df, y_var_name, percent_data=None,
     # REMEMBER OLD DATAFRAME
 
     df_unpiped, df_X_unpiped = df.copy(), df.copy().drop(y_var_name, axis=1)
-    (unpiped_continuous_features, unpiped_category_features) = sort_features(df_X_unpiped)
+    (unpiped_continuous_features,
+     unpiped_category_features) = sort_features(df_X_unpiped)
     columns_unpiped = df_X_unpiped.columns
 
     # REMOVE CATEGORICAL VARIABLES THAT HAVE TOO MANY CATEGORIES TO BE USEFUL
@@ -332,7 +326,9 @@ def compare_predictions(df, y_var_name, percent_data=None,
         plt.show()
 
         # #OTHER CROSS VALIDATE METHOD:
-        # ridge_regularization_strengths = np.logspace(np.log10(0.000001), np.log10(100000000), num=100)
+        # ridge_regularization_strengths = np.logspace(np.log10(0.000001),
+        #                                              np.log10(100000000),
+        #                                              num=100)
         # ridge_regressions = []
         # y=df['age']
         # df_X = df.drop('age', axis=1)
@@ -347,20 +343,22 @@ def compare_predictions(df, y_var_name, percent_data=None,
         # ADD GRIDSEARCH HERE
 
         # FIT MODEL WITH ALL DATA
-        model.fit(X,y)
+        model.fit(X, y)
         fit_models.append(model)
 
         # PLOT PREDICTED VS ACTUALS
         if is_continuous:
-            timeit(plot_predicted_vs_actuals, df, model, y_var_name, sample_limit)
+            timeit(plot_predicted_vs_actuals, df,
+                   model, y_var_name, sample_limit)
             plt.show()
 
         # MAKE BOOTSTRAPS
         if bootstrap_coefs or partial_dep:
-            bootstrap_models = bootstrap_train_premade(model, X, y, bootstraps=bootstraps, fit_intercept=False)
+            bootstrap_models = bootstrap_train_premade(model, X, y,
+                                                       bootstraps=bootstraps,
+                                                       fit_intercept=False)
 
         # PLOT COEFFICIANTS
-
         if hasattr(model, "coef_"):
             coefs = model.coef_
             columns = list(df.drop(y_var_name, axis=1).columns)
@@ -373,7 +371,8 @@ def compare_predictions(df, y_var_name, percent_data=None,
             if is_continuous:
                 if bootstrap_coefs:
                     # PLOT BOOTSTRAP COEFS
-                    fig, axs = timeit(plot_bootstrap_coefs, bootstrap_models, df_X.columns, n_col=4)
+                    fig, axs = timeit(plot_bootstrap_coefs, bootstrap_models,
+                                      df_X.columns, n_col=4)
                     fig.tight_layout()
                     plt.show()
 
@@ -385,18 +384,18 @@ def compare_predictions(df, y_var_name, percent_data=None,
 
         # PLOT PARTIAL DEPENDENCIES
         if partial_dep:
-            timeit(plot_partial_dependences, model, X=df_X_unpiped, var_names=unpiped_continuous_features, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
+            timeit(plot_partial_dependences, model, X=df_X_unpiped,
+                   var_names=unpiped_continuous_features, y=y,
+                   bootstrap_models=bootstrap_models, pipeline=pipeline,
+                   n_points=250)
             plt.tight_layout()
-            # plot_partial_dependences(model, X=df_unpiped.drop(y_var_name, axis=1), var_names=columns_unpiped, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
-            # galgraphs.plot_partial_dependences(model, X=df_unpiped.drop(y_var_name, axis=1), var_names=columns_unpiped, y=y, bootstrap_models=bootstrap_models, pipeline=pipeline, n_points=250)
             plt.show()
-            # hot_categorical_vars = [column for column in df.columns if (len(df[column].unique()) == 2)]
-            # galgraphs.shaped_plot_partial_dependences(model, df[[y_var_name]+hot_categorical_vars], y_var_name)
             plt.show()
 
         # PLOT PREDICTED VS ACTUALS
-        # Sample no matter what
-        plot_continuous_error_graphs(df, y, y_var_name, model, is_continuous, sample_limit,
+        plot_continuous_error_graphs(df, y, y_var_name, model,
+                                     is_continuous,
+                                     sample_limit,
                                      predicteds_vs_actuals=True,
                                      residuals=True)
 
@@ -412,15 +411,12 @@ def compare_predictions(df, y_var_name, percent_data=None,
                                     compare_models,
                                     results,
                                     is_continuous)
-
     # ROC CURVE
     if ROC:
         if not is_continuous:
             timeit(plot_rocs, models, df_X, y)
             plt.show()
-
     print(f'MAKE SUBSAMPLE TIME: {time() - starttotal}')
-
     return names, results, models, pipeline, df_X
 
 def bootstrap_train_premade(model, X, y, bootstraps=1000, **kwargs):
@@ -459,7 +455,11 @@ if __name__ == "__main__":
     # balance = balance_with_zero.head(10000)
 
     # make_plots(balance, 'Balance', auto_spline_pipeliner, 10)
-    (rr_optimized, auto_spline_pipeline) = make_k_folds_ridge(balance, 'Balance', pipeliner = auto_spline_pipeliner, knots = 10, alpha_min = 10, alpha_max = 1000)
+    (rr_optimized,
+     auto_spline_pipeline) = make_k_folds_ridge(balance, 'Balance',
+                                                pipeliner=auto_spline_pipeliner,
+                                                knots=10, alpha_min=10,
+                                                alpha_max=1000)
     # import pdb;
     # pdb.set_trace()
     # print(rr_optimized.predict(auto_spline_pipeline.transform(balance).values))

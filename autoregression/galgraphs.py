@@ -540,6 +540,31 @@ def plot_partial_dependences(model, X, var_names, y=None, bootstrap_models=None,
     fig.tight_layout()
     return fig, axs
 
+
+def plot_continuous_error_graphs(df, y, y_var_name, model, is_continuous, sample_limit=300, predicteds_vs_actuals=True, residuals=True):
+    df_X_sample = df.sample(sample_limit).drop(y_var_name, axis=1)
+    y_hat_sample = model.predict(df_X_sample)
+    if is_continuous:
+        if len(y)>0:
+            if len(y) == len(y_hat_sample):
+                if predicteds_vs_actuals:
+                    (continuous_features, category_features) = sort_features(df_X_sample)
+                    timeit(plot_many_predicteds_vs_actuals, df_X_sample, continuous_features, y, y_hat_sample.reshape(-1), n_bins=50)
+                    plt.show()
+                    # plot_many_predicteds_vs_actuals(df_X_sample, category_features, y, y_hat_sample.reshape(-1), n_bins=50)
+                    # add feature to jitter plot to categorical features
+                    # add cdf???
+                if residuals:
+                    fig, ax = plt.subplots()
+                    timeit(plot_residual_error, ax, df_X_sample.values[:,0].reshape(-1), y.reshape(-1), y_hat_sample.reshape(-1), s=30)
+                    plt.show()
+            else:
+                print('len(y) != len(y_hat), so no regressions included' )
+        else:
+            print('No y, so no regressions included')
+    return None
+
+
 def plot_roc(ax, model, df_X, y, pipeline=None):
     """ plot the fpr and tpr for all thresholds of the classification
         INPUT:
