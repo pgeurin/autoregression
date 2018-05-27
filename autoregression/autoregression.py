@@ -66,7 +66,7 @@ import sys
 plt.style.use('ggplot')
 
 
-def plot_choose_alpha(df, model, y_var_name, alphas):
+def plot_choose_alpha(df, model, y_var_name, alphas, kfold, scoring):
     ridges = []
     ridges_scores = []
     ave_scores = []
@@ -76,7 +76,8 @@ def plot_choose_alpha(df, model, y_var_name, alphas):
         ridge = model(alpha=alpha)
         ridge.fit(df_X, y)
         ridges.append(ridge)
-        ridge_scores = cross_val_score(ridge, df_X.values, y)
+        ridge_scores = cross_val_score(ridge, df_X.values, y, cv=kfold,
+                                       scoring=scoring)
         ridges_scores.append(ridge_scores)
         ave_score = np.mean(ridge_scores)
         ave_scores.append(ave_score)
@@ -239,9 +240,9 @@ def make_cat_models(alphas):
     # names_models.append(('SVM', SVC()))
     return names_models
 
-def make_models(df, df_X, y, y_var_name, univariates):
+def make_models(df, df_X, y, y_var_name, univariates,
+                alphas=np.logspace(start=-2, stop=5, num=5)):
     """CHOOSE MODELS FOR CONTINUOUS OR CATEGORICAL Y, make the Models"""
-    alphas = np.logspace(start=-2, stop=5, num=5)
     print(len(y.unique()))
     (continuous_features, category_features) = sort_features(df_X)
     is_continuous = (y_var_name in continuous_features)
@@ -322,7 +323,9 @@ def clean_dataframe(df, y_var_name, percent_data):
         return df, sample_limit
 
 def compare_predictions(df, y_var_name, percent_data=None,
-                        category_limit=11, knots=3, corr_matrix=True,
+                        category_limit=11, knots=3,
+                        alphas=np.logspace(start=-2, stop=5, num=50),
+                        corr_matrix=True,
                         scatter_matrix=True, bootstrap_coefs=True,
                         feature_importances=True,
                         partial_dep=True, actual_vs_predicted=True,
@@ -368,18 +371,20 @@ def compare_predictions(df, y_var_name, percent_data=None,
     # MAKE MODELS
     (names_models, continuous_features,
      category_features, models, scoring,
-     is_continuous, alphas) = make_models(df, df_X, y, y_var_name, univariates)
+     is_continuous, alphas) = make_models(df, df_X, y, y_var_name,
+                                          univariates, alphas)
 
     # evaluate each model in turn
     fit_models, results, names, seed = [], [], [], 7
 
     for name, model in tqdm.tqdm(names_models):
         # if not linear: change df_X to df_X unpiped
+        kfold = model_selection.KFold(n_splits=10, random_state=seed)
         if name == 'RR':
-            alpha, cv_results = plot_choose_alpha(df, model, y_var_name, alphas)
+            alpha, cv_results = timeit(plot_choose_alpha, df, model,
+                                       y_var_name, alphas, kfold, scoring)
             model = model(alpha)
         else:
-            kfold = model_selection.KFold(n_splits=10, random_state=seed)
             cv_results = timeit(cross_val_score, model, X, y,
                                 cv=kfold, scoring=scoring)
         results.append(cv_results)
