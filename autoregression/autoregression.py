@@ -461,7 +461,6 @@ def compare_predictions(df, y_var_name, percent_data=None,
                    n_points=250)
             plt.tight_layout()
             plt.show()
-            plt.show()
 
         # PLOT PREDICTED VS ACTUALS
         plot_continuous_error_graphs(df, y, y_var_name, model,
@@ -469,7 +468,6 @@ def compare_predictions(df, y_var_name, percent_data=None,
                                      sample_limit,
                                      predicteds_vs_actuals=True,
                                      residuals=True)
-
         df_X = df.drop(y_var_name, axis=1)
 
         # GET ERROR
