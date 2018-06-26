@@ -71,6 +71,7 @@ def plot_emperical_distribution(ax, data):
         buff = (maximum - minimum) / 10
         line = np.linspace(minimum - buff, maximum + buff, len(data))
         ax.plot(line, emperical_distribution(line, data))
+    return None
 
 
 def one_dim_scatterplot(ax, data, jitter=0.2, **options):
@@ -96,6 +97,7 @@ def one_dim_scatterplot(ax, data, jitter=0.2, **options):
     ax.scatter(data, jitter, s=5, **options)
     ax.yaxis.set_ticklabels([])
     ax.set_ylim([-1, 1])
+    return None
 
 
 def hsv_to_rgb(h, s, v, alpha=0.5):
@@ -193,9 +195,13 @@ def plot_one_scatter_matrix(plot_sample_df, sample_df, y_var_name,
                                                     len(plot_sample_df) * .1,
                                                     len(plot_sample_df) * .1),
                                                 s=80,
-                                                diagonal="kde")
+                                                # diagonal="kde",
+                                                diagonal="hist",
+                                                hist_kwds={'bins': 50},
+                                                )
     for ax in scatter_matrix.ravel():
-        ax.set_facecolor((0.1, 0.1, 0.1))
+        # ax.set_facecolor((1, 1, 1))
+        # ax.set_facecolor((.1, .1, .1))
         ax.set_xlabel(ax.get_xlabel(), fontsize=20, rotation=90)
         ax.set_ylabel(ax.get_ylabel(), fontsize=20, rotation=0)
     plt.show()
@@ -222,12 +228,11 @@ def plot_scatter_matrix(df, y_continuous=True, y_var_name=None, colors=None):
         y_var_name = df.columns[0]
     (continuous_features, category_features) = sort_features(
                                                 df.drop(y_var_name, axis=1))
-    if y_var_name in continuous_features:
-        continuous_features.remove(y_var_name)
     color_wheel = make_color_wheel(df, y_var_name)
     sample_df = take_sample(df)
+    # Oh my, possible error: you can make a subsample that one unique value
     while 5 < len(continuous_features):
-        plot_sample_df = sample_df[[y_var_name] + continuous_features[:6]]
+        plot_sample_df = sample_df[[y_var_name] + continuous_features[:5]]
         plot_one_scatter_matrix(plot_sample_df, sample_df, y_var_name,
                                 color_wheel, colors, y_continuous)
         continuous_features = continuous_features[5:]
@@ -270,6 +275,7 @@ def plot_one_univariate(ax, df, x_var_name, y_var_name, mask=None):
             df[y_var_name],
             mask=mask,
             bootstrap=200)
+    return None
 
 
 def plot_many_univariates(df, y_var_name):
@@ -317,7 +323,8 @@ def plot_many_univariates(df, y_var_name):
             # 'tight_layout' must be used in calling script as well
             fig.tight_layout(pad=2)
     else:
-        print('No Continous Features to Plot')
+        raise ValueError('No Continous Features to Plot')
+    return None
 
 
 def plot_predicted_vs_actuals(df, model, y_var_name, sample_limit):
