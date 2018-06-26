@@ -1,0 +1,22 @@
+lookup what auto.arima
+read henlmans book: forcasting princiles and practice
+
+past terms, How many yk - (yk-1) subtractions to be not random walking, number of static terms to use
+
+Use AIC to find best terms.
+
+minimize AIC,
+AIC = alkali, LogLikelyhood + log(# parameters)
+
+how many steps back to look,
+
+SARIMA models
+
+
+How use multiple time series to effect each other???
+multilevel models time series model
+heirarchical models time series model
+mixed effect models time series model
+
+
+gelmin and hill regerssion analysis with multilevel models
