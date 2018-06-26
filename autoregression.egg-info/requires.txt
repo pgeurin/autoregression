@@ -1,9 +1,0 @@
-numpy
-pandas
-scikit-learn
-matplotlib
-scipy
-basis_expansions
-regression_tools
-stringcase
-tqdm
