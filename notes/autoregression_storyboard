@@ -9,7 +9,7 @@ TODO:
 	X (detect number of cont varables ahead of time)
 	X some error in the partial depednecy plot
 	X offer a random samling of the data
-	X? for categorical variables make PREDICTEDS VS ACTUALS A ROC curve
+	X for categorical variables make PREDICTEDS VS ACTUALS A ROC curve
 	make alpha relative to number of rows
 	X put cleandata.py, and galgraphs.py in autoregression
 	X toggle univariate
@@ -21,10 +21,14 @@ TODO:
 	X Decide if categorical column (non int or float) has too many categories, then drop column.
 	X refactor graphing tools
 	X Add 'take 10% sample first' and maybe even 1%
+	O Spline only for ridge and lasso
+	O rename library: greg (Galvanize regression)
+	0 transform target categorical variable: true/false
+	O add 'name' to each graph title, parameter " name='' ", say "Too many categories, autoreg can only predict between binary categorical variables. Feel free to add this feature and contribute at: http://github.com/pgeurin/autoregression/"
 	O fix on <300 variables
 	O find eliotts' error in scatter_matix "TypeError: numpy boolean subtract, the `-` operator, is deprecated, use the bitwise_xor, the `^` operator, or the logical_xor function instead."
-	O correct violin plot labels
-	O make a make test.py program
+	X correct violin plot labels
+	O make a make test.py program - ask: how?
 	O add datetime identifier: what do I do with it?
 	O check standardization?
 	O get subsample, THEN clean
@@ -35,16 +39,18 @@ TODO:
 			axs[0].scatter(df_admissions.gpa,df_admissions.admit+jitter, s = 1)
 			axs[1].scatter(df_admissions.gre+jitter2*50,df_admissions.admit+jitter, s = 1)
 			axs[2].scatter(df_admissions["rank"]+jitter2,df_admissions.admit+jitter, s = 1)
+			like in: http://localhost:8888/notebooks/Users/macbookpro/Dropbox/Galvanize/dsi-logistic-regression/pair.ipynb
 	X turn the vioin plots 90 deg
-	O change violinplots log on y, not x.
-	O fix nameing on violin plots
+	O add jitter like in
+	X change violinplots log on y, not x.
+	X fix nameing on violin plots
 	O Add gridsearch to change scoring function AND test varibles
 	O Plot the Train Test comparison graph AND choose the best model parameters
 	O Add jitter to the compare prediction in the binary case
-	O Add relative importances of DT and RF. (Significance factors)
-	O Plot Lasso Regression variables
+	X Add relative importances of DT and RF. (Significance factors)
+	X Plot Lasso Regression variables
 	O put partial diff eq. 2 X N (side by side)
-	O Tree feature importances
+	X Tree feature importances
 	O Add nlp if there's a string of 4 or more words in 30% of a column
 	O make manual setting for each variable
 	O Add image processing (with that simple regression thing) if there are matrixes of equal(ish) size
@@ -60,7 +66,7 @@ TODO:
 	O if y==None: perform Clustering.
 	O NLP naive_bayes on the side. (or add it in?, let that be an option,)
 	O Turn cleandata functions into pipelines so we can clean separate data.
-	0 fix : (BECAUSE RIGHT NOW len(y) WILL NEVER EQUAL y_hat_sample, I need to take the samle sample from y)
+	O fix : (BECAUSE RIGHT NOW len(y) WILL NEVER EQUAL y_hat_sample, I need to take the samle sample from y)
 		problem:
 			df_X_sample = df.sample(sample_limit).drop(y_var_name, axis=1)
 	        y_hat_sample = model.predict(df_X_sample)
