@@ -196,11 +196,11 @@ def simple_spline_specification(name, knots=10):
 
 def simple_category_specification(var_name, levels):
     """Make a pipeline taking feature (aka column) 'name' and
-        outputting n-2 new spline features
+        outputting n-2 new levels
         INPUT:
             name:
                 string, a feature name to spline
-            knots:
+            levels:
                 int, number knots (divisions) which are divisions
                 between splines.
         OUTPUT:
