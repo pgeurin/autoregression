@@ -12,9 +12,8 @@ plt.style.use('ggplot')
 
 def sort_features(df):
     """Takes a dataframe, returns lists of continuous and categorical features.
-
     INPUT: dataframe
-    OUTPUT: two lists of continuous and categorial features"""
+    OUTPUT: two lists, continuous and categorial features"""
     continuous_features = []
     category_features = []
     for type, feature in zip(df.dtypes, df.dtypes.index):
@@ -144,13 +143,13 @@ def take_sample(df):
 
 
 def color_map(x):
-    """ Transfer a float number (ideally between -1 and 1) to a rgba color.
+    """ Transfer a float number (between -1 and 1) to a rgba color.
     """
     if 1 < x:
         return hsv_to_rgb(25/360, 1, 1, alpha=1)
     elif 0 <= x:
         return hsv_to_rgb(25/360, x, 1, alpha=1)
-    elif x < 0:
+    elif (-1 < x) & (x < 0):
         return hsv_to_rgb(240/360, -x, 1, alpha=1)
     elif x < -1:
         return hsv_to_rgb(240/360, 1, 1, alpha=1)
@@ -160,18 +159,16 @@ def plot_one_scatter_matrix(plot_sample_df, sample_df, y_var_name,
                             color_wheel, colors, y_continuous):
     """ Plots a scatter matrix of the continuous variables.
         INPUT:
-            df:
-                dataframe
+            plot_sample_df:
+                The df elements in THIS scatterplot
+            sample_df:
+                Dataframe elements in all scatterplots to set colors
             y_var_name:
                 string, the column name of the dependent y variable in
                 the dataframe
-            jitter:
-                a float that widens the data, make this wider according to
-                number of datapoints
-            **options:
-                the **options input found in matplotlib scatter
+
         OUTPUT:
-            A scatterplot on ax.
+            A scatterplot.
     """
     if colors:
         # if y_continuous:
@@ -181,11 +178,19 @@ def plot_one_scatter_matrix(plot_sample_df, sample_df, y_var_name,
         #                     np.min(sample_df[y_var_name])))
         #     colors = zero_to_one.map(lambda x: hsv_to_rgb(0, x, 1, alpha=1))
         if y_continuous:
+            # standardized_values = (((
+            #     plot_sample_df[y_var_name] -
+            #     np.min(sample_df[y_var_name])) /
+            #    (np.max(sample_df[y_var_name]) -
+            #     np.min(sample_df[y_var_name]))
+            #     ) * 2) -1
+            # colors = standardized_values.map(color_map)
             standardish = ((plot_sample_df[y_var_name] -
                             np.mean(sample_df[y_var_name])) /
                            np.std(sample_df[y_var_name]) / 1.6)
-            print(standardish)
+            # print(standardish)
             colors = standardish.map(color_map)
+            # print(colors)
         else:
             colors = plot_sample_df[y_var_name].map(lambda x:
                                                     color_wheel.get(x))

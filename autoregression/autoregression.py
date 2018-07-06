@@ -374,12 +374,14 @@ def compare_predictions(df, y_var_name, percent_data=None,
 
     # SHOW CORRELATION MATRIX
     if corr_matrix:
-        timeit(plt.matshow, df.sample(sample_limit).corr())
+        if len(unpiped_continuous_features) > 0:
+            timeit(plt.matshow, df.sample(sample_limit).corr())
 
     # MAKE SCATTER MATRIX
     if scatter_matrix:
-        timeit(plot_scatter_matrix, df, y_var_name, colors=True)
-        plt.show()
+        if len(unpiped_continuous_features) > 0:
+            timeit(plot_scatter_matrix, df, y_var_name, colors=True)
+            plt.show()
 
     # TRANSFORM DATAFRAME
     print('DF COLUMNS: \n' + str(list(df.columns)) + '\n')
