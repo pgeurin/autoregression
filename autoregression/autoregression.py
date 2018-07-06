@@ -196,11 +196,11 @@ def simple_spline_specification(name, knots=10):
 
 def simple_category_specification(var_name, levels):
     """Make a pipeline taking feature (aka column) 'name' and
-        outputting n-2 new spline features
+        outputting n-2 new levels
         INPUT:
             name:
                 string, a feature name to spline
-            knots:
+            levels:
                 int, number knots (divisions) which are divisions
                 between splines.
         OUTPUT:
@@ -374,12 +374,14 @@ def compare_predictions(df, y_var_name, percent_data=None,
 
     # SHOW CORRELATION MATRIX
     if corr_matrix:
-        timeit(plt.matshow, df.sample(sample_limit).corr())
+        if len(unpiped_continuous_features) > 0:
+            timeit(plt.matshow, df.sample(sample_limit).corr())
 
     # MAKE SCATTER MATRIX
     if scatter_matrix:
-        timeit(plot_scatter_matrix, df, y_var_name, colors=True)
-        plt.show()
+        if len(unpiped_continuous_features) > 0:
+            timeit(plot_scatter_matrix, df, y_var_name, colors=True)
+            plt.show()
 
     # TRANSFORM DATAFRAME
     print('DF COLUMNS: \n' + str(list(df.columns)) + '\n')

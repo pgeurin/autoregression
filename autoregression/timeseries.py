@@ -234,6 +234,7 @@ def fill_and_float_timeseries(timeseries, freq='D'):
 # if __name__ == "__main__":
 #     main()
 
+
 def main():
     posts_df = pd.read_csv('../data/posts.csv')
     posts_df['date'] = pd.to_datetime(posts_df['date'], errors='coerce')
