@@ -4,3 +4,4 @@ __pycache__/
 .DS_Store
 pyinst2/
 pyinst2guessing/
+__pycache__/
