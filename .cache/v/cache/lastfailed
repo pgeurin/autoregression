@@ -1,6 +1,0 @@
-{
-  "testing/test_autoreg.py::TestStringMethods::test_make_cont_models": true,
-  "testing/test_autoregression.py::TestStringMethods::test_make_cont_models": true,
-  "testing/test_autoregression.py::TestStringMethods::test_simple_category_specification": true,
-  "testing/test_autoregression.py::TestStringMethods::test_simple_spline_specification": true
-}
