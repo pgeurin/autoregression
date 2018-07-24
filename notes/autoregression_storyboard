@@ -21,6 +21,7 @@ TODO:
 	X Decide if categorical column (non int or float) has too many categories, then drop column.
 	X refactor graphing tools
 	X Add 'take 10% sample first' and maybe even 1%
+	O Rename: learnpy, datasci, datascipy, mechlearnpy, 
 	O Spline only for ridge and lasso
 	O rename library: greg (Galvanize regression)
 	0 transform target categorical variable: true/false
