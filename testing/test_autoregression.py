@@ -21,7 +21,8 @@ from basis_expansions.basis_expansions import (
 from autoregression import (simple_spline_specification,
                             simple_category_specification,
                             make_cont_models,
-                            plot_choose_alpha)
+                            plot_choose_alpha,
+                            clean_dataframe)
 
 
 
@@ -89,6 +90,58 @@ class TestModels(unittest.TestCase):
         alpha, cv_results = plot_choose_alpha(df, model, y_var_name, alphas, kfold, scoring)
         self.assertEqual(.001, alpha)
 
+    def test_clean_dataframe(self):
+        df1 = pd.DataFrame([[1, np.inf, 3],
+                           [2, 3, 4],
+                           [3, 4, 5],
+                           [2, 3, 4],
+                           [3, 4, 5],
+                           [2, 3, np.NAN],
+                           [3, 4, 5],
+                           [2, 3, 4],
+                           [3, 4, 5],
+                           [2, 3, 4],
+                           [3, 4, 5]], columns=['first', 'second', 'third'])
+        y_var_name = 'first'
+        percent_data = 1
+        df2, sample_limit = clean_dataframe(df1, y_var_name, percent_data=None)
+        self.assertTrue(df2.reset_index(drop=True).equals(
+                         pd.DataFrame(
+                          [[3.5, 3, True, False, 1],
+                           [3, 4, False, False, 2],
+                           [4, 5, False, False, 3],
+                           [3, 4, False, False, 2],
+                           [4, 5, False, False, 3],
+                           [3, 4.4, False, True, 2],
+                           [4, 5, False, False, 3],
+                           [3, 4, False, False, 2],
+                           [4, 5, False, False, 3],
+                           [3, 4, False, False, 2],
+                           [4, 5, False, False, 3]], columns=[
+                                                'second',
+                                                'third',
+                                                'second_was_inf',
+                                                'third_was_null',
+                                                'first']).reset_index(drop=True)))
+        self.assertTrue(df2.reset_index(drop=True).equals(
+                         pd.DataFrame(
+                          [[3.5, 3, True, False, 1],
+                           [3, 4, False, False, 2],
+                           [4, 5, False, False, 3],
+                           [3, 4, False, False, 2],
+                           [4, 5, False, False, 3],
+                           [3, 4.4, False, True, 2],
+                           [4, 5, False, False, 3],
+                           [3, 4, False, False, 2],
+                           [4, 5, False, False, 3],
+                           [3, 4, False, False, 2],
+                           [4, 5, False, False, 3]], columns=[
+                                                'second',
+                                                'third',
+                                                'second_was_inf',
+                                                'third_was_null',
+                                                'first']).reset_index(drop=True)))
+        # self.assertTrue(False) # This correctly breaks the machine
 
 
 # class TestSplines(unittest.TestCase):
