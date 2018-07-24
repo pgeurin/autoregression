@@ -488,7 +488,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
             timeit(plot_rocs, models, df_X, y)
             plt.show()
     print(f'MAKE SUBSAMPLE TIME: {time() - starttotal}')
-    return names, results, models, pipeline, df_X
+    return names, results, fit_models, pipeline, df_X
 
 def bootstrap_train_premade(model, X, y, bootstraps=1000, **kwargs):
     """Train a (linear) model on multiple bootstrap samples of some data and
