@@ -23,7 +23,8 @@ from autoregression import (simple_spline_specification,
                             make_cont_models,
                             plot_choose_alpha,
                             clean_dataframe,
-                            take_subsample)
+                            take_subsample,
+                            make_sample_limit)
 
 
 
@@ -126,6 +127,52 @@ class TestModels(unittest.TestCase):
                                                 'third_was_null',
                                                 'first']).reset_index(drop=True)))
 
+
+    def test_isupper(self):
+        self.assertTrue('FOO'.isupper())
+        self.assertFalse('Foo'.isupper())
+
+
+    def test_split(self):
+        s = 'hello world'
+        self.assertEqual(s.split(), ['hello', 'world'])
+        # check that s.split fails when the separator is not a string
+        with self.assertRaises(TypeError):
+            s.split(2)
+
+
+    def test_take_subsample(self):
+        df = pd.DataFrame([[1, 2, 3, 4],
+                           [1, 2, 3, 4],
+                           [1, 2, 3, 4]],
+                          columns=['first',
+                                   'second',
+                                   'third',
+                                   'fourth'])
+        df2 = take_subsample(df, percent_data=1)
+        df2 = df2.sort_index(ascending=True)
+        self.assertTrue(df.equals(df2))
+        self.assertEqual(len(df2), 3)
+        df3 = take_subsample(df, percent_data=0.66)
+        self.assertEqual(len(df3), 2)
+
+
+    def test_make_sample_limit(self):
+        df = pd.DataFrame([[1, 2, 3, 4],
+                           [1, 2, 3, 4],
+                           [1, 2, 3, 4]],
+                          columns=['first',
+                                   'second',
+                                   'third',
+                                   'fourth'])
+        self.assertEqual(3, make_sample_limit(df))
+        df1 = df
+        for i in range(20):
+            df1 = df1.append(df1)
+        self.assertEqual(300, make_sample_limit(df1))
+
+
+
         # self.assertTrue(False) # This correctly breaks the machine
 
 
@@ -152,53 +199,6 @@ class TestModels(unittest.TestCase):
 #                                          ]))
 #                           ]).__dict__
 #                          )
-
-
-
-        # def test_take_subsample(self):
-        #     df = pd.DataFrame([[1, 2, 3, 4],
-        #                        [1, 2, 3, 4],
-        #                        [1, 2, 3, 4]],
-        #                       columns=['first',
-        #                                'second',
-        #                                'third',
-        #                                'fourth'])
-        #     print(df)
-        #     print(take_subsample(df, percent_data=1))
-        #     self.assertEqual(take_subsample(df, percent_data=1).sort_index, df)
-
-
-    def test_isupper(self):
-        self.assertTrue('FOO'.isupper())
-        self.assertFalse('Foo'.isupper())
-
-
-    def test_split(self):
-        s = 'hello world'
-        self.assertEqual(s.split(), ['hello', 'world'])
-        # check that s.split fails when the separator is not a string
-        with self.assertRaises(TypeError):
-            s.split(2)
-
-
-    def test_take_subsample(self):
-        df = pd.DataFrame([[1, 2, 3, 4],
-                           [1, 2, 3, 4],
-                           [1, 2, 3, 4]],
-                          columns=['first',
-                                   'second',
-                                   'third',
-                                   'fourth'])
-        df2 = take_subsample(df, percent_data=1)
-        print(df)
-        print(df2.sort_index)
-        self.assertTrue(df.equals(df2.sort_index))
-        self.assertEqual(len(df2), 3)
-        df3 = take_subsample(df, percent_data=0.66)
-        self.assertEqual(len(df3), 2)
-
-    def test_make_sample_limit():
-        make_sample_limit(df)
 
 if __name__ == '__main__':
     unittest.main()
