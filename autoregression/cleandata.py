@@ -24,7 +24,7 @@ def rename_columns(df):
     """
     replacers = {}
     for name in df.columns:
-        replacers[name] = stringcase.snakecase(name).replace('__', '_')
+        replacers[name] = stringcase.snakecase(name.lower()).replace('__', '_')
     df = df.rename(index=str, columns=replacers)
     return df
 
