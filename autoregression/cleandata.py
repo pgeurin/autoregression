@@ -10,8 +10,10 @@ import warnings
 warnings.filterwarnings("ignore", """SettingWithCopyWarning:
 A value is trying to be set on a copy of a slice from a DataFrame""")
 
+
 def fxn():
     warnings.warn("ignore", Warning)
+
 
 def rename_columns(df):
     """ all column labels in lower_snake_case
@@ -25,7 +27,7 @@ def rename_columns(df):
     replacers = {}
     for name in df.columns:
         replacers[name] = stringcase.snakecase(name.lower()).replace('__', '_')
-    df = df.rename(index=str, columns=replacers)
+    df = df.rename(index=int, columns=replacers)
     return df
 
 
