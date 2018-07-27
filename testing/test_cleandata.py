@@ -69,13 +69,47 @@ class TestClean(unittest.TestCase):
         df_X_exp = pd.DataFrame([[1, 2, True], [1, 2, True], [0, 3, True]], columns=['first', 'second', 'first_==_1'])
         assert_dict_equal(df_X_aft.to_dict(), df_X_exp.to_dict())
 
-        df_X = pd.DataFrame([[1, 2, 3, 4], [np.NaN, 2, 3, 4]], columns=['first', 'second_and_third', 'fourth', 'fifth_and_sixth'])
+
+    def test_add_feature_continuous_condition_equal_1_null(self):
+        df_X = pd.DataFrame([[1, 2], [np.NaN, 2], [0, 3]], columns=['first', 'second'])
         df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='==', number=1)
+        df_X_exp = pd.DataFrame([[1, 2, False, True], [0.5, 2, True, False], [0, 3, False, False]], columns=['first', 'second', 'first_is_null', 'first_==_1'])
+        assert_dict_equal(df_X_aft.to_dict(), df_X_exp.to_dict())
+
+
+    def test_add_feature_continuous_condition_not_equal_1_null(self):
+        df_X = pd.DataFrame([[1, 2], [np.NaN, 2], [0, 3]], columns=['first', 'second'])
         df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='!=', number=1)
+        df_X_exp = pd.DataFrame([[1, 2, False, False], [0.5, 2, True, True], [0, 3, False, True]], columns=['first', 'second', 'first_is_null', 'first_!=_1'])
+        assert_dict_equal(df_X_aft.to_dict(), df_X_exp.to_dict())
+
+
+    def test_add_feature_continuous_condition_less_2_null(self):
+        df_X = pd.DataFrame([[1, 2], [np.NaN, 2], [0, 3]], columns=['first', 'second'])
         df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='<', number=2)
+        df_X_exp = pd.DataFrame([[1, 2, False, True], [0.5, 2, True, True], [0, 3, False, True]], columns=['first', 'second', 'first_is_null', 'first_<_2'])
+        assert_dict_equal(df_X_aft.to_dict(), df_X_exp.to_dict())
+
+
+    def test_add_feature_continuous_condition_greater_2_null(self):
+        df_X = pd.DataFrame([[1, 2], [np.NaN, 2], [0, 3]], columns=['first', 'second'])
         df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='>', number=2)
+        df_X_exp = pd.DataFrame([[1, 2, False, False], [0.5, 2, True, False], [0, 3, False, False]], columns=['first', 'second', 'first_is_null', 'first_>_2'])
+        assert_dict_equal(df_X_aft.to_dict(), df_X_exp.to_dict())
+
+
+    def test_add_feature_continuous_condition_equal_2_null(self):
+        df_X = pd.DataFrame([[1, 2], [np.NaN, 2], [0, 3]], columns=['first', 'second'])
         df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='==', number=2)
+        df_X_exp = pd.DataFrame([[1, 2, False, False], [0.5, 2, True, False], [0, 3, False, False]], columns=['first', 'second', 'first_is_null', 'first_==_2'])
+        assert_dict_equal(df_X_aft.to_dict(), df_X_exp.to_dict())
+
+
+    def test_add_feature_continuous_condition_not_equal_2_null(self):
+        df_X = pd.DataFrame([[1, 2], [np.NaN, 2], [0, 3]], columns=['first', 'second'])
         df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='!=', number=2)
+        df_X_exp = pd.DataFrame([[1, 2, False, True], [0.5, 2, True, True], [0, 3, False, True]], columns=['first', 'second', 'first_is_null', 'first_!=_2'])
+        assert_dict_equal(df_X_aft.to_dict(), df_X_exp.to_dict())
 
 
 if __name__ == "__main__":
