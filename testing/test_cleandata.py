@@ -26,25 +26,27 @@ class TestClean(unittest.TestCase):
         # self.assertTrue(df_snake.equals(df_rename))
 
 
-    # def test_add_feature_continuous_condition(self):
-    #     df_X = pd.DataFrame([[1, 2], [1, 2]], columns=['first', 'second'])
-    #     df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='==', number=1)
-    #     df_X_exp = pd.DataFrame([[1, 2, True], [1, 2, True]], columns=['first', 'second', '==_first'])
-    #     self.assertTrue(df_X_aft.to_dict(), df_X_exp.to_dict())
-    #     df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='==', number=1)
-    #     df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='!=', number=1)
-    #     df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='<', number=2)
-    #     df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='>', number=2)
-    #     df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='==', number=2)
-    #     df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='!=', number=2)
-    #
-    #     df_X = pd.DataFrame([[1, 2, 3, 4], [np.NaN, 2, 3, 4]], columns=['first', 'second_and_third', 'fourth', 'fifth_and_sixth'])
-    #     df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='==', number=1)
-    #     df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='!=', number=1)
-    #     df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='<', number=2)
-    #     df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='>', number=2)
-    #     df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='==', number=2)
-    #     df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='!=', number=2)
+    def test_add_feature_continuous_condition(self):
+        df_X = pd.DataFrame([[1, 2], [1, 2], [0, 3]], columns=['first', 'second'])
+        df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='==', number=1)
+        df_X_exp = pd.DataFrame([[1, 2, True], [1, 2, True], [0, 3, False]], columns=['first', 'second', 'first_==_1'])
+        print(df_X_aft)
+        print(df_X_exp)
+        assert_dict_equal(df_X_aft.to_dict(), df_X_exp.to_dict())
+        df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='==', number=1)
+        df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='!=', number=1)
+        df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='<', number=2)
+        df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='>', number=2)
+        df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='==', number=2)
+        df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='!=', number=2)
+
+        df_X = pd.DataFrame([[1, 2, 3, 4], [np.NaN, 2, 3, 4]], columns=['first', 'second_and_third', 'fourth', 'fifth_and_sixth'])
+        df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='==', number=1)
+        df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='!=', number=1)
+        df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='<', number=2)
+        df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='>', number=2)
+        df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='==', number=2)
+        df_X_aft = add_feature_continuous_condition(df_X, cont_feature_name='first', indicator='!=', number=2)
 
 
 if __name__ == "__main__":

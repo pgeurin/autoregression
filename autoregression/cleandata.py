@@ -32,8 +32,8 @@ def rename_columns(df):
 
 
 def add_feature_continuous_condition(df_X, cont_feature_name, indicator, number):
-    """ Add a feature to the dataframe where a continuous feature matches a conditional (Ex: 'acorns < 0'),
-        replacing them with the mean. This removes the continuous variables' effects in this region.
+    """ Add a feature to the dataframe where a continuous feature matches a conditional.
+        (Ex: 'acorns < 0'), replacing them with the mean. This removes the continuous variables' effects in this region.
         INPUT:
             df_X:
                 A dataframe of independent variables.
@@ -62,8 +62,8 @@ def add_feature_continuous_condition(df_X, cont_feature_name, indicator, number)
 #     df_X[cont_feature_name][~pd.isna(df_X[cont_feature_name])] = np.mean(df_X[cont_feature_name][~pd.isna(df_X[cont_feature_name])])
     df_X[cont_feature_name + "_" + str(indicator) + "_" + str(
         number)] = ops[indicator](df_X[cont_feature_name], number)
-    df_X[cont_feature_name][ops[indicator](df_X[cont_feature_name], number)] = np.mean(
-        df_X[cont_feature_name][~ops[indicator](df_X[cont_feature_name], number)])
+    # df_X[cont_feature_name][ops[indicator](df_X[cont_feature_name], number)] = np.mean(
+    #     df_X[cont_feature_name][~ops[indicator](df_X[cont_feature_name], number)])
     return df_X
 
 
