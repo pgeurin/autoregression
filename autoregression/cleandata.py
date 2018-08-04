@@ -106,14 +106,9 @@ def category_clean_null_and_inf(df_X, cat_feature_name):
             df_X:
                 The same dataframe, with meaned values that were null. At most three new features (of 0's and 1's).
     """
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        df_X[cat_feature_name][df_X[cat_feature_name] == np.inf] = "was_inf"
-        fxn()
-        df_X[cat_feature_name][df_X[cat_feature_name] == -np.inf] = "was_neg_inf"
-        fxn()
-        df_X[cat_feature_name][pd.isnull(df_X[cat_feature_name])] = "was_null"
-        fxn()
+    df_X.loc[df_X[cat_feature_name] == np.inf, cat_feature_name] = "was_inf"
+    df_X.loc[df_X[cat_feature_name] == -np.inf, cat_feature_name] = "was_neg_inf"
+    df_X.loc[pd.isnull(df_X[cat_feature_name]), cat_feature_name] = "was_null"
     return df_X
 
 def sort_features(df):
