@@ -172,6 +172,72 @@ class TestModels(unittest.TestCase):
         self.assertEqual(300, make_sample_limit(df1))
 
 
+    def test_clean_df_y_nan(self):
+        df = pd.DataFrame([[1, 2, 3, np.nan],
+                           [5, 6, 7, 8],
+                           [9, 10, 11, 12]],
+                          columns=['first',
+                                   'second',
+                                   'third',
+                                   'fourth'])
+        df_clean_sample = pd.DataFrame([[5.0, 6.0, 7.0, 8.0],
+                                [9.0, 10.0, 11.0, 12.0]],
+                                columns=['first',
+                                        'second',
+                                        'third',
+                                        'fourth'])
+        df_cleaned, sample_limit = clean_dataframe(df, 'fourth', percent_data=1)
+        assert df_cleaned.reset_index(drop=True).to_dict() == df_clean_sample.reset_index(drop=True).to_dict()
+
+    def test_clean_df_y_x_nan(self):
+        df = pd.DataFrame([[1, np.nan, 3, np.nan],
+                           [5, 6, 7, 8],
+                           [9, 10, np.nan, 12],
+                           [13, 14, 15, 16]],
+                          columns=['first',
+                                   'second',
+                                   'third',
+                                   'fourth'])
+        df_clean_sample = pd.DataFrame([[5.0, 6.0, 7.0, False, 8.0],
+                                [9.0, 10.0, 11.0, True, 12.0],
+                                [13.0, 14.0, 15.0, False, 16.0]],
+                                columns=['first',
+                                        'second',
+                                        'third',
+                                        'third_was_null',
+                                        'fourth'])
+        print(df)
+        df_clean_sample = df_clean_sample.reset_index(drop=True)
+        print(df_clean_sample)
+        df_cleaned, sample_limit = clean_dataframe(df, 'fourth', percent_data=1)
+        df_cleaned = df_cleaned.sort_index().reset_index(drop=True)
+        print(df_cleaned)
+        assert df_cleaned.to_dict() == df_clean_sample.to_dict()
+
+    def test_clean_df_y_x_inf(self):
+        df = pd.DataFrame([[1, np.nan, 3, np.inf],
+                           [5, 6, 7, 8],
+                           [9, 10, np.nan, 12],
+                           [13, 14, 15, 16]],
+                          columns=['first',
+                                   'second',
+                                   'third',
+                                   'fourth'])
+        df_clean_sample = pd.DataFrame([[5.0, 6.0, 7.0, False, 8.0],
+                                [9.0, 10.0, 10.5, True, 12.0],
+                                [13.0, 14.0, 15.0, False, 16.0]],
+                                columns=['first',
+                                        'second',
+                                        'third',
+                                        'third_was_null',
+                                        'fourth'])
+        print(df)
+        df_clean_sample = df_clean_sample.reset_index(drop=True)
+        print(df_clean_sample)
+        df_cleaned, sample_limit = clean_dataframe(df, 'fourth', percent_data=1)
+        df_cleaned = df_cleaned.sort_index().reset_index(drop=True)
+        print(df_cleaned)
+        assert df_cleaned.to_dict() == df_cleaned.to_dict()
 
         # self.assertTrue(False) # This correctly breaks the machine
 
