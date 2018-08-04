@@ -240,6 +240,7 @@ def plot_scatter_matrix(df, y_continuous=True, y_var_name=None, colors=None):
         plot_sample_df = sample_df[[y_var_name] + continuous_features[:5]]
         plot_one_scatter_matrix(plot_sample_df, sample_df, y_var_name,
                                 color_wheel, colors, y_continuous)
+        plt.show()
         continuous_features = continuous_features[5:]
     plot_sample_df = sample_df[[y_var_name] + continuous_features]
     plot_one_scatter_matrix(plot_sample_df, sample_df, y_var_name, color_wheel,

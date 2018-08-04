@@ -340,6 +340,7 @@ def clean_dataframe(df, y_var_name, percent_data):
         sample_limit = make_sample_limit(df)
         return df, sample_limit
 
+
 def compare_predictions(df, y_var_name, percent_data=None,
                         category_limit=11, knots=3,
                         alphas=np.logspace(start=-2, stop=5, num=50),
@@ -489,6 +490,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
             plt.show()
     print(f'MAKE SUBSAMPLE TIME: {time() - starttotal}')
     return names, results, fit_models, pipeline, df_X
+
 
 def bootstrap_train_premade(model, X, y, bootstraps=1000, **kwargs):
     """Train a (linear) model on multiple bootstrap samples of some data and

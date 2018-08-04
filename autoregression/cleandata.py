@@ -53,11 +53,11 @@ def add_feature_continuous_condition(df_X, cont_feature_name, indicator, number)
            '<=': operator.le,
            '>': operator.gt,
            '>=': operator.ge}
-    if pd.isnull(df_X[cont_feature_name]).any():
-        df_X[cont_feature_name +
-             "_is_null"] = pd.isnull(df_X[cont_feature_name])
-        df_X[cont_feature_name][pd.isnull(df_X[cont_feature_name])] = np.mean(
-            df_X[cont_feature_name][~pd.isnull(df_X[cont_feature_name])])
+    nulls = pd.isnull(df_X[cont_feature_name])
+    if nulls.any():
+        df_X[cont_feature_name + "_is_null"] = nulls
+        df_X.loc[nulls, cont_feature_name
+                 ] = np.mean(df_X.loc[~nulls, cont_feature_name])
 #     df_X[cont_feature_name + "_is_na"] = pd.isna(df_X[cont_feature_name])
 #     df_X[cont_feature_name][~pd.isna(df_X[cont_feature_name])] = np.mean(df_X[cont_feature_name][~pd.isna(df_X[cont_feature_name])])
     df_X[cont_feature_name + "_" + str(indicator) + "_" + str(
@@ -82,23 +82,26 @@ def add_feature_continuous_null(df_X, cont_feature_name):
     if (df_X[cont_feature_name] == np.inf).any():
         df_X[cont_feature_name +
              "_was_inf"] = (df_X[cont_feature_name] == np.inf)
-        import warnings
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            df_X[cont_feature_name][df_X[cont_feature_name] == np.inf] = np.mean(df_X[cont_feature_name][df_X[cont_feature_name] != np.inf])
-            fxn()
+        inf_rows = (df_X[cont_feature_name] == np.inf)
+        non_inf_rows = (df_X[cont_feature_name] != np.inf)
+        df_X.loc[inf_rows, cont_feature_name
+                 ] = np.mean(df_X.loc[non_inf_rows, cont_feature_name])
 
+    inf_rows = (df_X[cont_feature_name] == -np.inf)
     if (df_X[cont_feature_name] == -np.inf).any():
         df_X[cont_feature_name +
-             "_was_neg_inf"] = (df_X[cont_feature_name] == np.inf)
-        df_X[cont_feature_name][df_X[cont_feature_name] == -
-                                np.inf] = np.mean(df_X[cont_feature_name][df_X[cont_feature_name] != -np.inf])
+             "_was_neg_inf"] = (df_X[cont_feature_name] == -np.inf)
+        non_inf_rows = (df_X[cont_feature_name] != -np.inf)
+        df_X.loc[inf_rows, cont_feature_name
+                 ] = np.mean(df_X.loc[non_inf_rows, cont_feature_name])
 
     if pd.isnull(df_X[cont_feature_name]).any():
         df_X[cont_feature_name +
              "_was_null"] = pd.isnull(df_X[cont_feature_name])
-        df_X[cont_feature_name][pd.isnull(df_X[cont_feature_name])] = np.mean(
-            df_X[cont_feature_name][~pd.isnull(df_X[cont_feature_name])])
+        inf_rows = pd.isnull(df_X[cont_feature_name])
+        non_inf_rows = ~pd.isnull(df_X[cont_feature_name])
+        df_X.loc[inf_rows, cont_feature_name
+                 ] = np.mean(df_X.loc[non_inf_rows, cont_feature_name])
     return df_X
 
 
@@ -158,6 +161,8 @@ def clean_df_respect_to_y(df, y_var_name):
         df:
             A df with no missing y variables
     """
+    df = df[df[y_var_name] != np.inf]
+    df = df[df[y_var_name] != -np.inf]
     return df[~df[y_var_name].isnull()]
 
 
