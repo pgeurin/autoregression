@@ -43,9 +43,12 @@ from regression_tools.dftransformers import (
 # warnings.filterwarnings('ignore')
 import stringcase
 from autoregression import cleandata
+from autoregression.cleandata import (sort_features,
+                                      rename_columns,
+                                      clean_df,
+                                      drop_category_exeeding_limit)
 from autoregression import galgraphs
-from autoregression.galgraphs import (sort_features,
-                                      plot_many_univariates,
+from autoregression.galgraphs import (plot_many_univariates,
                                       plot_scatter_matrix,
                                       plot_solution_paths,
                                       plot_predicted_vs_actuals,
@@ -330,13 +333,13 @@ def get_error(name, model, df_X, y, is_continuous):
 
 
 def clean_dataframe(df, y_var_name, percent_data):
-        df = cleandata.rename_columns(df)
+        df = rename_columns(df)
         y_var_name = stringcase.snakecase(y_var_name).replace('__',
                                                               '_'
                                                               ).replace('__',
                                                                         '_')
         df = timeit(take_subsample, df, percent_data)
-        df = timeit(cleandata.clean_df, df, y_var_name)
+        df = timeit(clean_df, df, y_var_name)
         sample_limit = make_sample_limit(df)
         return df, sample_limit
 
@@ -371,7 +374,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
     columns_unpiped = df_X_unpiped.columns
 
     # REMOVE CATEGORICAL VARIABLES THAT HAVE TOO MANY CATEGORIES TO BE USEFUL
-    df = cleandata.drop_category_exeeding_limit(df, y_var_name, category_limit)
+    df = drop_category_exeeding_limit(df, y_var_name, category_limit)
 
     # SHOW CORRELATION MATRIX
     if corr_matrix:

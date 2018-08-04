@@ -9,21 +9,7 @@ from regression_tools.plotting_tools import (plot_partial_depenence,
 from sklearn.metrics import auc, roc_curve
 plt.style.use('ggplot')
 
-
-def sort_features(df):
-    """Takes a dataframe, returns lists of continuous and categorical features.
-    INPUT: dataframe
-    OUTPUT: two lists, continuous and categorial features"""
-    continuous_features = []
-    category_features = []
-    for type, feature in zip(df.dtypes, df.dtypes.index):
-        if type == np.dtype('int') or type == np.dtype('float'):
-            continuous_features.append(feature)
-        if (type == np.dtype('O') or
-            type == np.dtype('<U') or
-            type == np.dtype('bool')):
-            category_features.append(feature)
-    return (continuous_features, category_features)
+from autoregression.cleandata import sort_features
 
 
 def emperical_distribution(x, data):

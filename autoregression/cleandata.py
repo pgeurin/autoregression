@@ -3,17 +3,6 @@ import numpy as np
 import pandas as pd
 import stringcase
 
-# from autoregression import autoregression
-from autoregression import galgraphs
-
-import warnings
-warnings.filterwarnings("ignore", """SettingWithCopyWarning:
-A value is trying to be set on a copy of a slice from a DataFrame""")
-
-
-def fxn():
-    warnings.warn("ignore", Warning)
-
 
 def rename_columns(df):
     """ all column labels in lower_snake_case
@@ -127,6 +116,20 @@ def category_clean_null_and_inf(df_X, cat_feature_name):
         fxn()
     return df_X
 
+def sort_features(df):
+    """Takes a dataframe, returns lists of continuous and categorical features.
+    INPUT: dataframe
+    OUTPUT: two lists, continuous and categorial features"""
+    continuous_features = []
+    category_features = []
+    for type, feature in zip(df.dtypes, df.dtypes.index):
+        if type == np.dtype('int') or type == np.dtype('float'):
+            continuous_features.append(feature)
+        if (type == np.dtype('O') or
+            type == np.dtype('<U') or
+            type == np.dtype('bool')):
+            category_features.append(feature)
+    return (continuous_features, category_features)
 
 def clean_df_X(df_X):
     """ Finds pesky nulls and np.infs. Replaces them with appropriate means or labels. Adds a labeling feature (True/False's only).
@@ -138,7 +141,7 @@ def clean_df_X(df_X):
             df_X:
                 The same dataframe, with meaned values that were null. At most three new features (of 0's and 1's) per column.
     """
-    (continuous_features, categorical_features) = galgraphs.sort_features(df_X)
+    (continuous_features, categorical_features) = sort_features(df_X)
     for feature in continuous_features:
         df_X = add_feature_continuous_null(df_X, feature)
     for feature in categorical_features:
@@ -213,7 +216,7 @@ def drop_categories_exeeding_limit(df, y_var_name, category_limit):
             df:
                 A dataframe with X less features for each who exeeds the limit.
     """
-    (continuous_features, category_features) = galgraphs.sort_features(
+    (continuous_features, category_features) = sort_features(
         df.drop(y_var_name, axis=1))
     for cat in category_features:
         if len(df[cat].unique()) > category_limit:
