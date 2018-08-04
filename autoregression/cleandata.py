@@ -169,6 +169,12 @@ def clean_df_respect_to_y(df, y_var_name):
     return df[~df[y_var_name].isnull()]
 
 
+def ints_to_floats(df):
+    for type, feature in zip(df.dtypes, df.columns):
+        if type == np.dtype('int'):
+            df[feature] = df[feature].astype('float')
+    return df
+
 def clean_df(df, y_var_name):
     """ Cleans the dataframe. Adds features for nulls, up to three for each continuous variable.
         INPUT:
@@ -180,6 +186,7 @@ def clean_df(df, y_var_name):
             df:
                 A cleaned dataframe with correct features added, up to three for each continuous variable.
     """
+    df = ints_to_floats(df)
     df = clean_df_respect_to_y(df, y_var_name)
     df_y = df[y_var_name]
     df_X = df.drop(y_var_name, axis=1)
