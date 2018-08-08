@@ -704,3 +704,11 @@ def plot_box_and_violins(names, scoring, results):
     ax[3].set_xticklabels(['']+names)
     ax[3].set_yscale('log')
     ax[3].get_yaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+
+
+def plot_ax_mean_std_dev_series(ax, series1, label=' '):
+    std1 = series1.std()
+    mean1 = series1.mean()
+    x_axis = np.arange(mean1 - std1/20, mean1 + std1/20, 0.00001)
+    ax.plot(x_axis, norm.pdf(x_axis, mean1, std1/(len(series1)))**(1/2), label=label, linewidth=6)
+    ax.legend()
