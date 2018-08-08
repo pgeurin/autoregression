@@ -9,21 +9,7 @@ from regression_tools.plotting_tools import (plot_partial_depenence,
 from sklearn.metrics import auc, roc_curve
 plt.style.use('ggplot')
 
-
-def sort_features(df):
-    """Takes a dataframe, returns lists of continuous and categorical features.
-    INPUT: dataframe
-    OUTPUT: two lists, continuous and categorial features"""
-    continuous_features = []
-    category_features = []
-    for type, feature in zip(df.dtypes, df.dtypes.index):
-        if type == np.dtype('int') or type == np.dtype('float'):
-            continuous_features.append(feature)
-        if (type == np.dtype('O') or
-            type == np.dtype('<U') or
-            type == np.dtype('bool')):
-            category_features.append(feature)
-    return (continuous_features, category_features)
+from autoregression.cleandata import sort_features
 
 
 def emperical_distribution(x, data):
@@ -240,6 +226,7 @@ def plot_scatter_matrix(df, y_continuous=True, y_var_name=None, colors=None):
         plot_sample_df = sample_df[[y_var_name] + continuous_features[:5]]
         plot_one_scatter_matrix(plot_sample_df, sample_df, y_var_name,
                                 color_wheel, colors, y_continuous)
+        plt.show()
         continuous_features = continuous_features[5:]
     plot_sample_df = sample_df[[y_var_name] + continuous_features]
     plot_one_scatter_matrix(plot_sample_df, sample_df, y_var_name, color_wheel,
@@ -717,3 +704,11 @@ def plot_box_and_violins(names, scoring, results):
     ax[3].set_xticklabels(['']+names)
     ax[3].set_yscale('log')
     ax[3].get_yaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+
+
+def plot_ax_mean_std_dev_series(ax, series1, label=' '):
+    std1 = series1.std()
+    mean1 = series1.mean()
+    x_axis = np.arange(mean1 - std1/20, mean1 + std1/20, 0.00001)
+    ax.plot(x_axis, norm.pdf(x_axis, mean1, std1/(len(series1)))**(1/2), label=label, linewidth=6)
+    ax.legend()

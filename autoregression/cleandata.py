@@ -3,17 +3,6 @@ import numpy as np
 import pandas as pd
 import stringcase
 
-# from autoregression import autoregression
-from autoregression import galgraphs
-
-import warnings
-warnings.filterwarnings("ignore", """SettingWithCopyWarning:
-A value is trying to be set on a copy of a slice from a DataFrame""")
-
-
-def fxn():
-    warnings.warn("ignore", Warning)
-
 
 def rename_columns(df):
     """ all column labels in lower_snake_case
@@ -53,11 +42,11 @@ def add_feature_continuous_condition(df_X, cont_feature_name, indicator, number)
            '<=': operator.le,
            '>': operator.gt,
            '>=': operator.ge}
-    if pd.isnull(df_X[cont_feature_name]).any():
-        df_X[cont_feature_name +
-             "_is_null"] = pd.isnull(df_X[cont_feature_name])
-        df_X[cont_feature_name][pd.isnull(df_X[cont_feature_name])] = np.mean(
-            df_X[cont_feature_name][~pd.isnull(df_X[cont_feature_name])])
+    nulls = pd.isnull(df_X[cont_feature_name])
+    if nulls.any():
+        df_X[cont_feature_name + "_is_null"] = nulls
+        df_X.loc[nulls, cont_feature_name
+                 ] = np.mean(df_X.loc[~nulls, cont_feature_name])
 #     df_X[cont_feature_name + "_is_na"] = pd.isna(df_X[cont_feature_name])
 #     df_X[cont_feature_name][~pd.isna(df_X[cont_feature_name])] = np.mean(df_X[cont_feature_name][~pd.isna(df_X[cont_feature_name])])
     df_X[cont_feature_name + "_" + str(indicator) + "_" + str(
@@ -82,23 +71,26 @@ def add_feature_continuous_null(df_X, cont_feature_name):
     if (df_X[cont_feature_name] == np.inf).any():
         df_X[cont_feature_name +
              "_was_inf"] = (df_X[cont_feature_name] == np.inf)
-        import warnings
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            df_X[cont_feature_name][df_X[cont_feature_name] == np.inf] = np.mean(df_X[cont_feature_name][df_X[cont_feature_name] != np.inf])
-            fxn()
+        inf_rows = (df_X[cont_feature_name] == np.inf)
+        non_inf_rows = (df_X[cont_feature_name] != np.inf)
+        df_X.loc[inf_rows, cont_feature_name
+                 ] = np.mean(df_X.loc[non_inf_rows, cont_feature_name])
 
+    inf_rows = (df_X[cont_feature_name] == -np.inf)
     if (df_X[cont_feature_name] == -np.inf).any():
         df_X[cont_feature_name +
-             "_was_neg_inf"] = (df_X[cont_feature_name] == np.inf)
-        df_X[cont_feature_name][df_X[cont_feature_name] == -
-                                np.inf] = np.mean(df_X[cont_feature_name][df_X[cont_feature_name] != -np.inf])
+             "_was_neg_inf"] = (df_X[cont_feature_name] == -np.inf)
+        non_inf_rows = (df_X[cont_feature_name] != -np.inf)
+        df_X.loc[inf_rows, cont_feature_name
+                 ] = np.mean(df_X.loc[non_inf_rows, cont_feature_name])
 
     if pd.isnull(df_X[cont_feature_name]).any():
         df_X[cont_feature_name +
              "_was_null"] = pd.isnull(df_X[cont_feature_name])
-        df_X[cont_feature_name][pd.isnull(df_X[cont_feature_name])] = np.mean(
-            df_X[cont_feature_name][~pd.isnull(df_X[cont_feature_name])])
+        inf_rows = pd.isnull(df_X[cont_feature_name])
+        non_inf_rows = ~pd.isnull(df_X[cont_feature_name])
+        df_X.loc[inf_rows, cont_feature_name
+                 ] = np.mean(df_X.loc[non_inf_rows, cont_feature_name])
     return df_X
 
 
@@ -114,16 +106,25 @@ def category_clean_null_and_inf(df_X, cat_feature_name):
             df_X:
                 The same dataframe, with meaned values that were null. At most three new features (of 0's and 1's).
     """
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        df_X[cat_feature_name][df_X[cat_feature_name] == np.inf] = "was_inf"
-        fxn()
-        df_X[cat_feature_name][df_X[cat_feature_name] == -np.inf] = "was_neg_inf"
-        fxn()
-        df_X[cat_feature_name][pd.isnull(df_X[cat_feature_name])] = "was_null"
-        fxn()
+    df_X.loc[df_X[cat_feature_name] == np.inf, cat_feature_name] = "was_inf"
+    df_X.loc[df_X[cat_feature_name] == -np.inf, cat_feature_name] = "was_neg_inf"
+    df_X.loc[pd.isnull(df_X[cat_feature_name]), cat_feature_name] = "was_null"
     return df_X
 
+def sort_features(df):
+    """Takes a dataframe, returns lists of continuous and categorical features.
+    INPUT: dataframe
+    OUTPUT: two lists, continuous and categorial features"""
+    continuous_features = []
+    category_features = []
+    for type, feature in zip(df.dtypes, df.dtypes.index):
+        if type == np.dtype('int') or type == np.dtype('float'):
+            continuous_features.append(feature)
+        if (type == np.dtype('O') or
+            type == np.dtype('<U') or
+            type == np.dtype('bool')):
+            category_features.append(feature)
+    return (continuous_features, category_features)
 
 def clean_df_X(df_X):
     """ Finds pesky nulls and np.infs. Replaces them with appropriate means or labels. Adds a labeling feature (True/False's only).
@@ -135,7 +136,7 @@ def clean_df_X(df_X):
             df_X:
                 The same dataframe, with meaned values that were null. At most three new features (of 0's and 1's) per column.
     """
-    (continuous_features, categorical_features) = galgraphs.sort_features(df_X)
+    (continuous_features, categorical_features) = sort_features(df_X)
     for feature in continuous_features:
         df_X = add_feature_continuous_null(df_X, feature)
     for feature in categorical_features:
@@ -158,8 +159,16 @@ def clean_df_respect_to_y(df, y_var_name):
         df:
             A df with no missing y variables
     """
+    df = df[df[y_var_name] != np.inf]
+    df = df[df[y_var_name] != -np.inf]
     return df[~df[y_var_name].isnull()]
 
+
+def ints_to_floats(df):
+    for type, feature in zip(df.dtypes, df.columns):
+        if type == np.dtype('int'):
+            df[feature] = df[feature].astype('float')
+    return df
 
 def clean_df(df, y_var_name):
     """ Cleans the dataframe. Adds features for nulls, up to three for each continuous variable.
@@ -172,6 +181,7 @@ def clean_df(df, y_var_name):
             df:
                 A cleaned dataframe with correct features added, up to three for each continuous variable.
     """
+    df = ints_to_floats(df)
     df = clean_df_respect_to_y(df, y_var_name)
     df_y = df[y_var_name]
     df_X = df.drop(y_var_name, axis=1)
@@ -208,7 +218,7 @@ def drop_categories_exeeding_limit(df, y_var_name, category_limit):
             df:
                 A dataframe with X less features for each who exeeds the limit.
     """
-    (continuous_features, category_features) = galgraphs.sort_features(
+    (continuous_features, category_features) = sort_features(
         df.drop(y_var_name, axis=1))
     for cat in category_features:
         if len(df[cat].unique()) > category_limit:

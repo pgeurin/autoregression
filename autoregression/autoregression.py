@@ -43,9 +43,12 @@ from regression_tools.dftransformers import (
 # warnings.filterwarnings('ignore')
 import stringcase
 from autoregression import cleandata
+from autoregression.cleandata import (sort_features,
+                                      rename_columns,
+                                      clean_df,
+                                      drop_category_exeeding_limit)
 from autoregression import galgraphs
-from autoregression.galgraphs import (sort_features,
-                                      plot_many_univariates,
+from autoregression.galgraphs import (plot_many_univariates,
                                       plot_scatter_matrix,
                                       plot_solution_paths,
                                       plot_predicted_vs_actuals,
@@ -316,33 +319,39 @@ def use_spline(df, y_var_name):
 def get_error(name, model, df_X, y, is_continuous):
     if is_continuous:
         y_hat = model.predict(df_X)
-        print(f'{name}: MSE = {np.mean((y_hat-y)**2)}')
+        mse = np.mean((y_hat-y)**2)
+        print(f'{name}: MSE = {mse}')
+        error = mse
     else:
         if 'predict_proba' in dir(model):
             y_hat = model.predict_proba(df_X)[:, 0]
             logloss = np.mean(y * np.log(y_hat) + (1 - y) * np.log(1 - y_hat))
             print(f'{name}: logloss = {logloss}')
+            error = logloss
         if 'decision_function' in dir(model):
             d = model.decision_function(df_X)[0]
             y_hat = np.exp(d) / np.sum(np.exp(d))
-            print(f'{name}: logloss = {np.mean((y_hat-y)**2)}')
-        return y_hat
+            mse = np.mean((y_hat-y)**2)
+            print(f'{name}: logloss = {mse}')
+            error = mse
+    return y_hat, error
 
 
 def clean_dataframe(df, y_var_name, percent_data):
-        df = cleandata.rename_columns(df)
+        df = rename_columns(df)
         y_var_name = stringcase.snakecase(y_var_name).replace('__',
                                                               '_'
                                                               ).replace('__',
                                                                         '_')
         df = timeit(take_subsample, df, percent_data)
-        df = timeit(cleandata.clean_df, df, y_var_name)
+        df = timeit(clean_df, df, y_var_name)
         sample_limit = make_sample_limit(df)
         return df, sample_limit
 
+
 def compare_predictions(df, y_var_name, percent_data=None,
                         category_limit=11, knots=3,
-                        alphas=np.logspace(start=-2, stop=5, num=50),
+                        alphas=np.logspace(start=-2, stop=10, num=50),
                         corr_matrix=True,
                         scatter_matrix=True, bootstrap_coefs=True,
                         feature_importances=True,
@@ -370,7 +379,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
     columns_unpiped = df_X_unpiped.columns
 
     # REMOVE CATEGORICAL VARIABLES THAT HAVE TOO MANY CATEGORIES TO BE USEFUL
-    df = cleandata.drop_category_exeeding_limit(df, y_var_name, category_limit)
+    df = drop_category_exeeding_limit(df, y_var_name, category_limit)
 
     # SHOW CORRELATION MATRIX
     if corr_matrix:
@@ -395,7 +404,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
                                           univariates, alphas)
 
     # evaluate each model in turn
-    fit_models, results, names, seed = [], [], [], 7
+    fit_models, results, names, y_hats, errors, seed = [], [], [], [], [], 7
 
     for name, model in tqdm.tqdm(names_models):
         # if not linear: change df_X to df_X unpiped
@@ -473,7 +482,9 @@ def compare_predictions(df, y_var_name, percent_data=None,
         df_X = df.drop(y_var_name, axis=1)
 
         # GET ERROR
-        y_hat = get_error(name, model, df_X, y, is_continuous)
+        y_hat, error = get_error(name, model, df_X, y, is_continuous)
+        y_hats.append(y_hat)
+        errors.append(error)
 
     # --COMPARE MODELS--
     if compare_models:
@@ -488,7 +499,8 @@ def compare_predictions(df, y_var_name, percent_data=None,
             timeit(plot_rocs, models, df_X, y)
             plt.show()
     print(f'MAKE SUBSAMPLE TIME: {time() - starttotal}')
-    return names, results, fit_models, pipeline, df_X
+    return names, results, fit_models, pipeline, df_X, y_hats, errors
+
 
 def bootstrap_train_premade(model, X, y, bootstraps=1000, **kwargs):
     """Train a (linear) model on multiple bootstrap samples of some data and
