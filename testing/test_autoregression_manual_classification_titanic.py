@@ -13,7 +13,7 @@ df_titanic['Pclass'] =  np.array(['zero', 'class one', 'class two', 'class three
 df_titanic['Survived'] = np.array([True, False])[df_titanic['Survived']]
 autoregression.compare_predictions(df_titanic,'survived',
                         corr_matrix=True,
-                        # scatter_matrix=True, 
+                        # scatter_matrix=True, #doesn't work IF categorical values of 4 groups in X.
                         bootstrap_coefs=True,
                         partial_dep=True, 
                         plot_alphas=True,

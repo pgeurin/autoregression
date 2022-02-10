@@ -399,13 +399,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
     if corr_matrix:
         if len(unpiped_continuous_features) > 0:
             timeit(plt.matshow, df.sample(sample_limit).corr())
-            plt.show(block=False)
-
-    # MAKE SCATTER MATRIX
-    if scatter_matrix:
-        if len(unpiped_continuous_features) > 0:
-            timeit(plot_scatter_matrix, df, y_var_name, colors=True)
-            plt.show(block=False)
+            plt.draw()
 
     # TRANSFORM DATAFRAME
     print('DF COLUMNS: \n' + str(list(df.columns)) + '\n')
@@ -417,6 +411,12 @@ def compare_predictions(df, y_var_name, percent_data=None,
      category_features, models, scoring,
      is_continuous, alphas) = make_models(df, df_X, y, y_var_name,
                                           univariates, alphas)
+
+    # MAKE SCATTER MATRIX (after because is_continuous)
+    if scatter_matrix:
+        if len(unpiped_continuous_features) > 0:
+            timeit(plot_scatter_matrix, df, y_continuous=is_continuous, y_var_name=y_var_name, colors=True)
+            plt.draw()
 
     # evaluate each model in turn
     fit_models, results, names, y_hats, errors, seed = [], [], [], [], [], 7

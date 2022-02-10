@@ -11,7 +11,7 @@ iris_df = pd.read_csv('https://raw.githubusercontent.com/mwaskom/seaborn-data/ma
 iris_df['foods'] = np.random.choice(['hot dogs', 'bacon', 'sweets', np.NaN, np.inf], iris_df.shape[0], )
 autoregression.compare_predictions(iris_df,'sepal_length',
                         # corr_matrix=True,
-                        # scatter_matrix=True, 
+                        scatter_matrix=True, 
                         # bootstrap_coefs=True,
                         # partial_dep=True, 
                         # plot_predicted_vs_actuals=True,
