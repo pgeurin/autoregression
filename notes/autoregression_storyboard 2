@@ -5,6 +5,7 @@ scatter matrix broken on categorical
 X test percent data - seed it
 X make diagram
 test on new datasets
+remove the extra one-hot-encoder
 X caterogical can only handle true/false? Yep. 
 X might not work on bigger data
 add flags to run/not-run each model

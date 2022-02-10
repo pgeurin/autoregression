@@ -390,13 +390,27 @@ def compare_predictions(df, y_var_name, percent_data=None,
                         bootstraps=10):
     """Takes dataframe
         INPUT:
-            name:
-                string, a feature name to spline
+            df:
+                must be numerical or a string having less than the category limit.
+            y_var_name:
+                Must be in df, and must be numerical or boolian.
             knots:
                 int, number knots (divisions) which are
                 divisions between splines.
         OUTPUT:
-            pipeline
+            names, results, fit_models, pipeline, df_X, y_hats, errors
+        Example:
+            df_titanic = pd.read_csv('https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv')
+            df_titanic = df_titanic[['Survived', 'Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare']]
+            df_titanic['Pclass'] =  np.array(['zero', 'class one', 'class two', 'class three'])[df_titanic['Pclass']]
+            df_titanic['Survived'] = np.array([True, False])[df_titanic['Survived']]
+            names, results, fit_models, pipeline, df_X, y_hats, errors = autoregression.compare_predictions(df_titanic, 'survived', percent_data=1)
+            from autoregression import clean_dataframe
+            df_titanic_cleaned, sample_limit = clean_dataframe(df_titanic, 'Survived', percent_data=1)
+            df_titanic_transformed = pipeline.transform(df_titanic_cleaned)
+            print(df_titanic_transformed.columns)
+            print(fit_models)
+            print(fit_models[0].predict_proba(df_titanic_transformed))
     """
     starttotal = time()
     df, sample_limit = clean_dataframe(df, y_var_name, percent_data)
