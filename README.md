@@ -42,6 +42,8 @@ pip install -e autoregression/
 
 for an editable, most current version.
 
+<img src="example_plots/auto_regression_flowchart.png" width="600"/>
+
 ## Galgraphs
 A library of graphing functions.
 
