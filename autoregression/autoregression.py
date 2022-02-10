@@ -32,8 +32,8 @@ from regression_tools.plotting_tools import (
     display_coef,
     bootstrap_train,
     plot_bootstrap_coefs,
-    # plot_partial_depenence,
-    plot_partial_dependences,
+    plot_partial_depenence,
+    # plot_partial_dependences,
     predicteds_vs_actuals)
 from regression_tools.dftransformers import (
     ColumnSelector, Identity,
@@ -109,7 +109,7 @@ def plot_continuous_error_graphs(df, y, y_var_name, model,
                     # add cdf???
                 if residuals:
                     fig, ax = plt.subplots()
-                    print(y)
+                    # print(y)
                     timeit(plot_residual_error, ax,
                            df_X_sample.values[:, 0].reshape(-1),
                            y, y_hat_sample, s=30) # had .reshape on y and y_hat_sample. Removed for fix?
@@ -305,6 +305,22 @@ def make_sample_limit(df):
         sample_limit = 300
     return sample_limit
 
+def plot_partial_dependences_title(model, X, var_names, 
+                             y=None, bootstrap_models=None, pipeline=None,
+                             n_points=250, title="Partial Dependences"):
+    """Convenience function for creating many partial dependency plots."""
+    fig, axs = plt.subplots(len(var_names), figsize=(12, 3*len(var_names)))
+    for ax, name in zip(axs, var_names):
+        if bootstrap_models:
+            for M in bootstrap_models[:100]:
+                plot_partial_depenence(
+                    ax, M, X=X, var_name=name, pipeline=pipeline, alpha=0.8, 
+                    linewidth=1, color="lightblue")
+        plot_partial_depenence(ax, model, X=X, var_name=name, y=y,
+                               pipeline=pipeline, color="blue", linewidth=3)
+        ax.set_title("{} Partial Dependence".format(name))
+    fig.suptitle(title)
+    return fig, axs
 
 def use_spline(df, y_var_name):
     df_X = df.drop(y_var_name, axis=1)
@@ -362,7 +378,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
                         bootstrap_coefs=False,
                         partial_dep=False, 
                         plot_alphas=False,
-                        plot_predicted_vs_actuals=False,
+                        plot_predicted_vs_actuals_flag=False,
                         plot_coefs_flag=False,
                         feature_importances=False,
                         actual_vs_predicted=False,
@@ -444,7 +460,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
         fit_models.append(model)
 
         # PLOT PREDICTED VS ACTUALS
-        if plot_predicted_vs_actuals:
+        if plot_predicted_vs_actuals_flag:
             if is_continuous:
                 timeit(plot_predicted_vs_actuals, df,
                     model, y_var_name, sample_limit)
@@ -452,9 +468,10 @@ def compare_predictions(df, y_var_name, percent_data=None,
 
         # MAKE BOOTSTRAPS
         if bootstrap_coefs or partial_dep:
-            bootstrap_models = bootstrap_train_premade(model, X, y,
-                                                       bootstraps=bootstraps,
-                                                       fit_intercept=False)
+            if hasattr(model, 'coef_'):
+                bootstrap_models = bootstrap_train_premade(model, X, y,
+                                                        bootstraps=bootstraps,
+                                                        fit_intercept=False)
 
         # PLOT COEFFICIANTS
         if plot_coefs_flag:
@@ -483,10 +500,13 @@ def compare_predictions(df, y_var_name, percent_data=None,
 
         # PLOT PARTIAL DEPENDENCIES
         if partial_dep:
-            timeit(plot_partial_dependences, model, X=df_X_unpiped,
+
+            model_name = type(model).__name__
+            figure_title = model_name + ' Partial Dependences'
+            timeit(plot_partial_dependences_title, model, X=df_X_unpiped,
                    var_names=unpiped_continuous_features, y=y,
                    bootstrap_models=bootstrap_models, pipeline=pipeline,
-                   n_points=250)
+                   n_points=250, title=figure_title)
             plt.tight_layout()
             plt.draw()
 

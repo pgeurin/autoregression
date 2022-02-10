@@ -269,7 +269,7 @@ def plot_one_univariate(ax, df, x_var_name, y_var_name, mask=None):
     return None
 
 
-def plot_many_univariates(df, y_var_name):
+def plot_many_univariates(df, y_var_name, title='Linear Spline Regression of all continuous columns'):
     """ A linear spline regression of all continuous columns in the dataframe.
         INPUT:
             ax:
@@ -315,6 +315,7 @@ def plot_many_univariates(df, y_var_name):
             fig.tight_layout(pad=2)
     else:
         raise ValueError('No Continous Features to Plot')
+    fig.suptitle(title)
     return None
 
 
@@ -399,7 +400,9 @@ def plot_feature_importances(model, df_X):
                                    index=df_X.columns)
         feat_scores = feat_scores.sort_values(
             by='Fraction of Samples Affected')
-        feat_scores.plot(kind='barh', figsize=(10, len(feat_scores) * 0.3))
+        model_name = type(model).__name__
+        figure_title = model_name + ' Feature Importances'
+        feat_scores.plot(kind='barh', figsize=(10, len(feat_scores) * 0.3), title=figure_title)
     else:
         raise ValueError(f"""Model: {model} doesn't have
                          feature_importances_, unable to plot""")
