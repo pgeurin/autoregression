@@ -1,0 +1,10 @@
+to do:
+X label my graphs with titles of the models
+X fix titanic categoricals
+scatter matrix broken on categorical
+X test percent data - seed it
+X make diagram
+test on new datasets
+X caterogical can only handle true/false? Yep. 
+X might not work on bigger data
+add flags to run/not-run each model
