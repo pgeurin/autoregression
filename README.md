@@ -42,6 +42,8 @@ pip install -e autoregression/
 
 for an editable, most current version.
 
+
+## Flowchart
 <img src="example_plots/auto_regression_flowchart.png" width="600"/>
 
 ## Galgraphs
