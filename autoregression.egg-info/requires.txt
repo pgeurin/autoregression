@@ -3,7 +3,7 @@ pandas
 scikit-learn
 matplotlib
 scipy
-basis_expansions
-regression_tools
+basis-expansions
+regression-tools
 stringcase
 tqdm

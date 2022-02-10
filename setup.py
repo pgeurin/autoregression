@@ -33,7 +33,7 @@ setup(
     packages=find_packages(),
     # packages=find_packages(),
     install_requires=['numpy', 'pandas', 'scikit-learn', 'matplotlib', 'scipy',
-                        'basis_expansions', 'regression_tools',
+                        'basis-expansions', 'regression-tools',
                         'stringcase', 'tqdm'],
     dependency_links=[
       # 'git+ssh://git@github.com/username/private_repo.git#egg=private_package_name-1.1',

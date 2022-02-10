@@ -195,9 +195,8 @@ def plot_one_scatter_matrix(plot_sample_df, sample_df, y_var_name,
         # ax.set_facecolor((.1, .1, .1))
         ax.set_xlabel(ax.get_xlabel(), fontsize=20, rotation=90)
         ax.set_ylabel(ax.get_ylabel(), fontsize=20, rotation=0)
-    plt.show()
+    plt.draw()
     return None
-
 
 def plot_scatter_matrix(df, y_continuous=True, y_var_name=None, colors=None):
     """ Plots a series of scatter matrix of the continuous variables.
@@ -226,7 +225,7 @@ def plot_scatter_matrix(df, y_continuous=True, y_var_name=None, colors=None):
         plot_sample_df = sample_df[[y_var_name] + continuous_features[:5]]
         plot_one_scatter_matrix(plot_sample_df, sample_df, y_var_name,
                                 color_wheel, colors, y_continuous)
-        plt.show()
+        plt.draw()
         continuous_features = continuous_features[5:]
     plot_sample_df = sample_df[[y_var_name] + continuous_features]
     plot_one_scatter_matrix(plot_sample_df, sample_df, y_var_name, color_wheel,

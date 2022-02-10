@@ -67,7 +67,7 @@ import sys
 plt.style.use('ggplot')
 
 
-def plot_choose_alpha(df, model, y_var_name, alphas, kfold, scoring):
+def choose_alpha(df, model, y_var_name, alphas, kfold, scoring, plot_alphas=False):
     ridges = []
     ridges_scores = []
     ave_scores = []
@@ -82,8 +82,9 @@ def plot_choose_alpha(df, model, y_var_name, alphas, kfold, scoring):
         ridges_scores.append(ridge_scores)
         ave_score = np.mean(ridge_scores)
         ave_scores.append(ave_score)
-    fig, ax = plt.subplots(figsize=(16, 6))
-    plot_solution_paths(ax, ridges)
+    if plot_alphas:
+        fig, ax = plt.subplots(figsize=(16, 6))
+        plot_solution_paths(ax, ridges)
     best_index = np.argmax(ave_scores)   # IS THIS MIN OR MAX???
     return alphas[best_index], ridges_scores[best_index]
 
@@ -103,15 +104,16 @@ def plot_continuous_error_graphs(df, y, y_var_name, model,
                     timeit(plot_many_predicteds_vs_actuals, df_X_sample,
                            continuous_features, y, y_hat_sample.reshape(-1),
                            n_bins=50)
-                    plt.show()
+                    plt.draw()
                     # add feature to jitter plot to categorical features
                     # add cdf???
                 if residuals:
                     fig, ax = plt.subplots()
+                    print(y)
                     timeit(plot_residual_error, ax,
                            df_X_sample.values[:, 0].reshape(-1),
-                           y.reshape(-1), y_hat_sample.reshape(-1), s=30)
-                    plt.show()
+                           y, y_hat_sample, s=30) # had .reshape on y and y_hat_sample. Removed for fix?
+                    plt.draw()
             else:
                 print('len(y) != len(y_hat), so no regressions included')
         else:
@@ -128,7 +130,7 @@ def choose_box_and_violin_plots(names, scoring, compare_models,
         timeit(plot_box_and_violins, names, scoring, negresults)
     else:
         timeit(plot_box_and_violins, names, scoring, results)
-    plt.show()
+    plt.draw()
     return None
 
 
@@ -272,14 +274,14 @@ def make_models(df, df_X, y, y_var_name, univariates,
         print()
         if univariates:
             plot_many_univariates(df, y_var_name)
-            plt.show()
+            plt.draw()
         names_models = make_cont_models(alphas)
         scoring = 'neg_mean_squared_error'
     else:
         print ( 'Y VARIABLE: "' + y_var_name + '" IS CATEGORICAL' )
         print()
         names_models = make_cat_models(alphas)
-        scoring = 'accuracy'
+        scoring = 'roc_auc'
     models = [x[1] for x in names_models]
     return (names_models, continuous_features, category_features,
             models, scoring, is_continuous, alphas)
@@ -325,6 +327,9 @@ def get_error(name, model, df_X, y, is_continuous):
     else:
         if 'predict_proba' in dir(model):
             y_hat = model.predict_proba(df_X)[:, 0]
+            # print(model)
+            # print(y)
+            # print(y_hat)
             logloss = np.mean(y * np.log(y_hat) + (1 - y) * np.log(1 - y_hat))
             print(f'{name}: logloss = {logloss}')
             error = logloss
@@ -352,12 +357,21 @@ def clean_dataframe(df, y_var_name, percent_data):
 def compare_predictions(df, y_var_name, percent_data=None,
                         category_limit=11, knots=3,
                         alphas=np.logspace(start=-2, stop=10, num=50),
-                        corr_matrix=True,
-                        scatter_matrix=True, bootstrap_coefs=True,
-                        feature_importances=True,
-                        partial_dep=True, actual_vs_predicted=True,
-                        residuals=True, univariates=True, compare_models=True,
-                        ROC=True, bootstraps=10):
+                        corr_matrix=False,
+                        scatter_matrix=False, 
+                        bootstrap_coefs=False,
+                        partial_dep=False, 
+                        plot_alphas=False,
+                        plot_predicted_vs_actuals=False,
+                        plot_coefs_flag=False,
+                        feature_importances=False,
+                        actual_vs_predicted=False,
+                        plot_predicteds_vs_actuals=False,
+                        residuals=False, 
+                        univariates=False, 
+                        compare_models=False,
+                        ROC=False, 
+                        bootstraps=10):
     """Takes dataframe
         INPUT:
             name:
@@ -385,12 +399,13 @@ def compare_predictions(df, y_var_name, percent_data=None,
     if corr_matrix:
         if len(unpiped_continuous_features) > 0:
             timeit(plt.matshow, df.sample(sample_limit).corr())
+            plt.show(block=False)
 
     # MAKE SCATTER MATRIX
     if scatter_matrix:
         if len(unpiped_continuous_features) > 0:
             timeit(plot_scatter_matrix, df, y_var_name, colors=True)
-            plt.show()
+            plt.show(block=False)
 
     # TRANSFORM DATAFRAME
     print('DF COLUMNS: \n' + str(list(df.columns)) + '\n')
@@ -408,10 +423,10 @@ def compare_predictions(df, y_var_name, percent_data=None,
 
     for name, model in tqdm.tqdm(names_models):
         # if not linear: change df_X to df_X unpiped
-        kfold = model_selection.KFold(n_splits=10, random_state=seed)
+        kfold = KFold(n_splits=10, random_state=seed, shuffle=True)
         if name == 'RR' or name == 'LASSO':
-            alpha, cv_results = timeit(plot_choose_alpha, df, model,
-                                       y_var_name, alphas, kfold, scoring)
+            alpha, cv_results = timeit(choose_alpha, df, model,
+                                       y_var_name, alphas, kfold, scoring, plot_alphas)
             model = model(alpha)
         else:
             cv_results = timeit(cross_val_score, model, X, y,
@@ -429,10 +444,11 @@ def compare_predictions(df, y_var_name, percent_data=None,
         fit_models.append(model)
 
         # PLOT PREDICTED VS ACTUALS
-        if is_continuous:
-            timeit(plot_predicted_vs_actuals, df,
-                   model, y_var_name, sample_limit)
-            plt.show()
+        if plot_predicted_vs_actuals:
+            if is_continuous:
+                timeit(plot_predicted_vs_actuals, df,
+                    model, y_var_name, sample_limit)
+                plt.draw()
 
         # MAKE BOOTSTRAPS
         if bootstrap_coefs or partial_dep:
@@ -441,13 +457,14 @@ def compare_predictions(df, y_var_name, percent_data=None,
                                                        fit_intercept=False)
 
         # PLOT COEFFICIANTS
-        if hasattr(model, "coef_"):
-            coefs = model.coef_
-            columns = list(df.drop(y_var_name, axis=1).columns)
-            while (type(coefs[0]) is list) or (type(coefs[0]) is np.ndarray):
-                coefs = list(coefs[0])
-            timeit(plot_coefs, coefs=coefs, columns=columns, graph_name=name)
-            plt.show()
+        if plot_coefs_flag:
+            if hasattr(model, "coef_"):
+                coefs = model.coef_
+                columns = list(df.drop(y_var_name, axis=1).columns)
+                while (type(coefs[0]) is list) or (type(coefs[0]) is np.ndarray):
+                    coefs = list(coefs[0])
+                timeit(plot_coefs, coefs=coefs, columns=columns, graph_name=name)
+                plt.draw()
 
         # PLOT BOOTSTRAP COEFFICIANTS
             if is_continuous:
@@ -456,13 +473,13 @@ def compare_predictions(df, y_var_name, percent_data=None,
                     fig, axs = timeit(plot_bootstrap_coefs, bootstrap_models,
                                       df_X.columns, n_col=4)
                     fig.tight_layout()
-                    plt.show()
+                    plt.draw()
 
         # PLOT FEATURE IMPORTANCES
         if feature_importances:
             if 'feature_importances_' in dir(model):
                 timeit(plot_feature_importances, model, df_X)
-                plt.show()
+                plt.draw()
 
         # PLOT PARTIAL DEPENDENCIES
         if partial_dep:
@@ -471,14 +488,15 @@ def compare_predictions(df, y_var_name, percent_data=None,
                    bootstrap_models=bootstrap_models, pipeline=pipeline,
                    n_points=250)
             plt.tight_layout()
-            plt.show()
+            plt.draw()
 
         # PLOT PREDICTED VS ACTUALS
-        plot_continuous_error_graphs(df, y, y_var_name, model,
-                                     is_continuous,
-                                     sample_limit,
-                                     predicteds_vs_actuals=True,
-                                     residuals=True)
+        if plot_predicteds_vs_actuals:
+            plot_continuous_error_graphs(df, y, y_var_name, model,
+                                        is_continuous,
+                                        sample_limit,
+                                        predicteds_vs_actuals=True,
+                                        residuals=True)
         df_X = df.drop(y_var_name, axis=1)
 
         # GET ERROR
@@ -497,8 +515,11 @@ def compare_predictions(df, y_var_name, percent_data=None,
     if ROC:
         if not is_continuous:
             timeit(plot_rocs, models, df_X, y)
-            plt.show()
+            plt.draw()
     print(f'MAKE SUBSAMPLE TIME: {time() - starttotal}')
+
+
+    plt.show()
     return names, results, fit_models, pipeline, df_X, y_hats, errors
 
 
@@ -530,6 +551,7 @@ def bootstrap_train_premade(model, X, y, bootstraps=1000, **kwargs):
         model.fit(X_boot, y_boot)
         bootstrap_models.append(model)
     return bootstrap_models
+
 
 
 if __name__ == "__main__":
