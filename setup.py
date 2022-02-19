@@ -33,11 +33,11 @@ setup(
     packages=find_packages(),
     # packages=find_packages(),
     install_requires=['numpy', 'pandas', 'scikit-learn', 'matplotlib', 'scipy',
-                        'basis-expansions', 'regression-tools',
+                        'basis-expansions @ git+https://github.com/madrury/basis-expansions', 'regression-tools @ git+https://github.com/madrury/regression-tools',
                         'stringcase', 'tqdm'],
     dependency_links=[
       # 'git+ssh://git@github.com/username/private_repo.git#egg=private_package_name-1.1',
-      'git+https://github.com/madrury/basis-expansions/archive/master.zip#egg=basis-expansions-0.0.1',
-      'git+https://github.com/madrury/regression-tools/archive/master.zip#egg=regression_tools-0.0.1',
+      'git+https://github.com/madrury/basis-expansions',
+      'git+https://github.com/madrury/regression-tools'
     ]
 )

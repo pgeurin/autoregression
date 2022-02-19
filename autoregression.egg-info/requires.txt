@@ -3,7 +3,7 @@ pandas
 scikit-learn
 matplotlib
 scipy
-basis-expansions
-regression-tools
+basis-expansions@ git+https://github.com/madrury/basis-expansions
+regression-tools@ git+https://github.com/madrury/regression-tools
 stringcase
 tqdm

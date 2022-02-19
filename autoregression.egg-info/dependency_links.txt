@@ -1,2 +1,2 @@
-git+https://github.com/madrury/basis-expansions/archive/master.zip#egg=basis-expansions-0.0.1
-git+https://github.com/madrury/regression-tools/archive/master.zip#egg=regression_tools-0.0.1
+git+https://github.com/madrury/basis-expansions
+git+https://github.com/madrury/regression-tools
