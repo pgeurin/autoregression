@@ -120,8 +120,9 @@ def make_color_wheel(df, y_var_name):
 def take_sample(df):
     """ If input dataframe has >300 rows, take 300 at random in a new dataramef.
     """
-    if len(df) < 300:
-        sample_limit = len(df)
+    df_len = df.shape[0]
+    if df_len < 300:
+        sample_limit = df_len
     else:
         sample_limit = 300
     sample_df = df.sample(n=sample_limit)
@@ -339,7 +340,7 @@ def plot_predicted_vs_actuals(df, model, y_var_name, sample_limit):
     """
     X = df.drop(y_var_name, axis=1).values
     name = model.__class__.__name__
-    plot_sample_df = df.sample(sample_limit)
+    plot_sample_df = take_sample(df)
     fig, ax = plt.subplots(figsize=(12, 4))
     ax.set_title(name + " Predicteds vs Actuals at " +
                  df.drop(y_var_name, axis=1).columns[0])
@@ -624,8 +625,11 @@ def plot_roc(ax, model, df_X, y, pipeline=None):
         probs = model.predict_proba(pipeline.transform(df_X))
     else:
         probs = model.predict_proba(df_X)
-    preds = probs[:, 1]
-    fpr, tpr, threshold = roc_curve(y, preds)
+    y_hat = probs[:, 1]
+    fpr, tpr, thresholds = roc_curve(y, y_hat)
+    # print(model)
+    # print(y[:10])
+    # print(y_hat[:10]) # make comparing y_hat and y a feature flag!
     roc_auc = auc(fpr, tpr)
     ax.set_title('Receiver Operating Characteristic')
     ax.plot(
@@ -638,7 +642,7 @@ def plot_roc(ax, model, df_X, y, pipeline=None):
     ax.set_xlabel('False Positive Rate')
 
 
-def plot_rocs(models, df_X, y, pipeline=None):
+def plot_rocs(ax, models, df_X, y, pipeline=None):
     """ plot the fpr and tpr for all thresholds of the classification
         INPUT:
             models:
@@ -655,7 +659,6 @@ def plot_rocs(models, df_X, y, pipeline=None):
     """
     if pipeline:
         df_X = pipeline.transform(df_X)
-    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
     for model in models:
         # pipeline intentionally tranformed before inserting df_X, pipeline
         # should not be passed!

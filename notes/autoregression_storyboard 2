@@ -1,11 +1,18 @@
 to do:
-X label my graphs with titles of the models
-X fix titanic categoricals
-scatter matrix broken on categorical
-X test percent data - seed it
-X make diagram
-test on new datasets
-remove the extra one-hot-encoder
-X caterogical can only handle true/false? Yep. 
-X might not work on bigger data
-add flags to run/not-run each model
+    scatter matrix broken on categorical
+    make the tests all-in-one
+    refactor the df.sample madness
+    refactor ROC graphing: put results (y_hat y) in one place, then compare in one graph at the end. 
+    fix logistic timeout error
+    make a y_hat vs y comparion print on feature flag 
+    remove the extra one-hot-encoder
+    add flags to run/not-run each model
+
+Done:
+    X label my graphs with titles of the models
+    X fix titanic categoricals
+    X test percent data - seed it
+    X make diagram
+    X test on new datasets
+    X caterogical can only handle true/false? Yep. 
+    X might not work on bigger data

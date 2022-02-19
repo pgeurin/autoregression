@@ -1,3 +1,4 @@
+from random import sample
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
@@ -88,11 +89,16 @@ def choose_alpha(df, model, y_var_name, alphas, kfold, scoring, plot_alphas=Fals
     best_index = np.argmax(ave_scores)   # IS THIS MIN OR MAX???
     return alphas[best_index], ridges_scores[best_index]
 
+def make_df_sample(df, num_rows):
+    least_rows = np.min([num_rows, df.shape[0]])
+    return df.sample(least_rows)
 
 def plot_continuous_error_graphs(df, y, y_var_name, model,
                                  is_continuous, sample_limit=300,
                                  predicteds_vs_actuals=True,
                                  residuals=True):
+    if df.shape[0] < sample_limit:
+        sample_limit = df.shape[0]
     df_X_sample = df.sample(sample_limit).drop(y_var_name, axis=1)
     y_hat_sample = model.predict(df_X_sample)
     if is_continuous:
@@ -121,7 +127,7 @@ def plot_continuous_error_graphs(df, y, y_var_name, model,
     return None
 
 
-def choose_box_and_violin_plots(names, scoring, compare_models,
+def choose_box_and_violin_plots(names, scoring, 
                                 results, is_continuous):
     if is_continuous:
         negresults = []
@@ -299,8 +305,9 @@ def take_subsample(df, percent_data=None):
 
 
 def make_sample_limit(df):
-    if len(df) < 300:
-        sample_limit = len(df)
+    df_len = df.shape[0]
+    if df_len < 300:
+        sample_limit = df_len
     else:
         sample_limit = 300
     return sample_limit
@@ -364,9 +371,10 @@ def clean_dataframe(df, y_var_name, percent_data):
                                                               '_'
                                                               ).replace('__',
                                                                         '_')
-        df = timeit(take_subsample, df, percent_data)
+        # subsample is breaking the ROC somehow
+        # df = timeit(take_subsample, df, percent_data) 
         df = timeit(clean_df, df, y_var_name)
-        sample_limit = make_sample_limit(df)
+        sample_limit = np.min([300, df.shape[0]])
         return df, sample_limit
 
 
@@ -387,7 +395,9 @@ def compare_predictions(df, y_var_name, percent_data=None,
                         univariates=False, 
                         compare_models=False,
                         ROC=False, 
-                        bootstraps=10):
+                        show_plots=True,
+                        bootstraps=10,
+                        random_seed=99):
     """Takes dataframe
         INPUT:
             df:
@@ -406,7 +416,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
             df_titanic['Survived'] = np.array([True, False])[df_titanic['Survived']]
             names, results, fit_models, pipeline, df_X, y_hats, errors = autoregression.compare_predictions(df_titanic, 'survived', percent_data=1)
             from autoregression import clean_dataframe
-            df_titanic_cleaned, sample_limit = clean_dataframe(df_titanic, 'Survived', percent_data=1)
+            df_titanic_cleaned, sample_limit = clean_dataframe(df_titanic, 'Survived', percent_data=None)
             df_titanic_transformed = pipeline.transform(df_titanic_cleaned)
             print(df_titanic_transformed.columns)
             print(fit_models)
@@ -418,8 +428,7 @@ def compare_predictions(df, y_var_name, percent_data=None,
     # REMEMBER OLD DATAFRAME
 
     df_unpiped, df_X_unpiped = df.copy(), df.copy().drop(y_var_name, axis=1)
-    (unpiped_continuous_features,
-     unpiped_category_features) = sort_features(df_X_unpiped)
+    (unpiped_continuous_features, unpiped_category_features) = sort_features(df_X_unpiped)
     columns_unpiped = df_X_unpiped.columns
 
     # REMOVE CATEGORICAL VARIABLES THAT HAVE TOO MANY CATEGORIES TO BE USEFUL
@@ -448,12 +457,15 @@ def compare_predictions(df, y_var_name, percent_data=None,
             timeit(plot_scatter_matrix, df, y_continuous=is_continuous, y_var_name=y_var_name, colors=True)
             plt.draw()
 
-    # evaluate each model in turn
-    fit_models, results, names, y_hats, errors, seed = [], [], [], [], [], 7
 
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+
+    # evaluate each model in turn
+    fit_models, results, names, y_hats, errors, random_seed = [], [], [], [], [], random_seed
+
+    kfold = KFold(n_splits=10, random_state=random_seed, shuffle=True) #try using the same splits for each model
     for name, model in tqdm.tqdm(names_models):
         # if not linear: change df_X to df_X unpiped
-        kfold = KFold(n_splits=10, random_state=seed, shuffle=True)
         if name == 'RR' or name == 'LASSO':
             alpha, cv_results = timeit(choose_alpha, df, model,
                                        y_var_name, alphas, kfold, scoring, plot_alphas)
@@ -468,15 +480,21 @@ def compare_predictions(df, y_var_name, percent_data=None,
         print(msg)
 
         # OTHER CROSS VALIDATE METHOD:
+        
+        # GET ONE TRAIN TEST SPLIT FOR GRAPHING:
+        train_index, test_index = next(kfold.split(X))
+        # print(test_index)
+        X_train, X_test, y_train, y_test = X[train_index], X[test_index], y[train_index], y[test_index]
+        df_test = df.iloc[test_index]
+        df_X_test = df_X.iloc[test_index]
+        df_X_unpiped_test =  df_X_unpiped.iloc[test_index]
+        y_hat = model.fit(X_train, y_train)
 
-        # FIT MODEL WITH ALL DATA
-        model.fit(X, y)
-        fit_models.append(model)
 
         # PLOT PREDICTED VS ACTUALS
         if plot_predicted_vs_actuals_flag:
             if is_continuous:
-                timeit(plot_predicted_vs_actuals, df,
+                timeit(plot_predicted_vs_actuals, df_test,
                     model, y_var_name, sample_limit)
                 plt.draw()
 
@@ -502,14 +520,14 @@ def compare_predictions(df, y_var_name, percent_data=None,
                 if bootstrap_coefs:
                     # PLOT BOOTSTRAP COEFS
                     fig, axs = timeit(plot_bootstrap_coefs, bootstrap_models,
-                                      df_X.columns, n_col=4)
+                                      df_X_test.columns, n_col=4)
                     fig.tight_layout()
                     plt.draw()
 
         # PLOT FEATURE IMPORTANCES
         if feature_importances:
             if 'feature_importances_' in dir(model):
-                timeit(plot_feature_importances, model, df_X)
+                timeit(plot_feature_importances, model, df_X_test)
                 plt.draw()
 
         # PLOT PARTIAL DEPENDENCIES
@@ -517,8 +535,8 @@ def compare_predictions(df, y_var_name, percent_data=None,
 
             model_name = type(model).__name__
             figure_title = model_name + ' Partial Dependences'
-            timeit(plot_partial_dependences_title, model, X=df_X_unpiped,
-                   var_names=unpiped_continuous_features, y=y,
+            timeit(plot_partial_dependences_title, model, X=df_X_unpiped_test,
+                   var_names=unpiped_continuous_features, y=y_test,
                    bootstrap_models=bootstrap_models, pipeline=pipeline,
                    n_points=250, title=figure_title)
             plt.tight_layout()
@@ -526,34 +544,41 @@ def compare_predictions(df, y_var_name, percent_data=None,
 
         # PLOT PREDICTED VS ACTUALS
         if plot_predicteds_vs_actuals:
-            plot_continuous_error_graphs(df, y, y_var_name, model,
+            plot_continuous_error_graphs(df_test, y_test, y_var_name, model,
                                         is_continuous,
                                         sample_limit,
                                         predicteds_vs_actuals=True,
                                         residuals=True)
-        df_X = df.drop(y_var_name, axis=1)
+        df_X = df.drop(y_var_name, axis=1) # THIS SHOULD ALMOST CERTAINLY BE MOVED EARLIER
+        df_X_test = df_test.drop(y_var_name, axis=1) # THIS SHOULD ALMOST CERTAINLY BE MOVED EARLIER
+
+        # ROC CURVE
+        if ROC: 
+            if not is_continuous:
+                timeit(plot_rocs, ax, [model], df_X_test, y_test)
+                # timeit(plot_rocs, models, df_X_test, y_test) #will overwrite one ax later
+                plt.draw()
+        print(f'MAKE SUBSAMPLE TIME: {time() - starttotal}')
 
         # GET ERROR
-        y_hat, error = get_error(name, model, df_X, y, is_continuous)
+        y_hat, error = get_error(name, model, df_X_test, y_test, is_continuous) # we could get all errors instead of just one with kfold
         y_hats.append(y_hat)
         errors.append(error)
+
+        # FIT MODEL WITH ALL DATA
+        model.fit(X, y)
+        fit_models.append(model)
+
+
 
     # --COMPARE MODELS--
     if compare_models:
         choose_box_and_violin_plots(names,
                                     scoring,
-                                    compare_models,
                                     results,
                                     is_continuous)
-    # ROC CURVE
-    if ROC:
-        if not is_continuous:
-            timeit(plot_rocs, models, df_X, y)
-            plt.draw()
-    print(f'MAKE SUBSAMPLE TIME: {time() - starttotal}')
-
-
-    plt.show()
+    if show_plots:
+        plt.show()
     return names, results, fit_models, pipeline, df_X, y_hats, errors
 
 
