@@ -22,10 +22,10 @@ machine learning techniques:
 
 ### Dependencies:
     pip install stringcase
+    git clone https://github.com/madrury/basis-expansions.git
+    pip install basis-expansions/
     git clone https://github.com/madrury/regression-tools
     pip install -e regression-tools/
-    git clone https://github.com/madrury/basis-expansions.git
-    pip install basis_expansions/
 
 A `setup.py` file is included. To install run:
 
